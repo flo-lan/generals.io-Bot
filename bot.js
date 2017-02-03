@@ -40,18 +40,21 @@ const TILE_EMPTY = -1;
 const TILE_MOUNTAIN = -2;
 const TILE_FOG = -3;
 const TILE_FOG_OBSTACLE = -4; // Cities and Mountains show up as Obstacles in the fog of war.
+const TILE_OFF_LIMITS = -5;
 
 // Game data.
 let playerIndex;
 let generals;
 let cities = [];
 let map = [];
+let size, width, height;
 
 socket.on('game_start', function(data) {
 	// Get ready to start playing the game.
 	playerIndex = data.playerIndex;
 	let replay_url = 'http://bot.generals.io/replays/' + encodeURIComponent(data.replay_id);
 	console.log('Game starting! The replay will be available after the game at ' + replay_url);
+	socket.emit('chat_message', data.chat_room, "gl hf");
 });
 
 socket.on('game_update', function(data) {
@@ -61,9 +64,9 @@ socket.on('game_update', function(data) {
 	generals = data.generals;
 
 	// The first two terms in |map| are the dimensions.
-	let width = map[0];
-	let height = map[1];
-	let size = width * height;
+	width = map[0];
+	height = map[1];
+	size = width * height;
 
 	// The next |size| terms are army values.
 	// armies[0] is the top-left corner of the map.
@@ -71,12 +74,55 @@ socket.on('game_update', function(data) {
 
 	// The last |size| terms are terrain values.
 	// terrain[0] is the top-left corner of the map.
-	var terrain = map.slice(size + 2, map.length - 1);
+	let terrain = map.slice(size + 2, map.length - 1);
+	let turn = data.turn;
 
-	doRandomMoves(terrain, size, width, height);
+	//wait for the first 10 moves
+	if(turn > 10) {
+		doRandomMoves(terrain);
+	}
 });
 
-function doRandomMoves(terrain, size, width, height) {
+function getAdjacentTiles(index, terrain) {
+	let up = getAdjacentTile(terrain, index, -width);
+	let right = getAdjacentTile(terrain, index, 1);
+	let down = getAdjacentTile(terrain, index, width);
+	let left = getAdjacentTile(terrain, index, -1);
+	return tileNeighbours = {
+		left, right, up, down
+	};
+}
+
+function getAdjacentTile(terrain, index, distance) {
+	let adjacentIndex = index + distance;
+	let curRow = Math.floor(index / width);
+	let adjacentRow = Math.floor(adjacentIndex / width);
+	switch(distance) {
+		//search for either right or left neighbor
+		case 1:
+		case -1:
+			//return only if it won't get out of grid bounds
+			if(adjacentRow == curRow) {
+				return terrain[adjacentIndex];
+			}
+			break;
+		//down
+		case width:
+			if(adjacentRow < height) {
+				return terrain[adjacentIndex];
+			}
+			break;
+		//up
+		case -width:
+			if(adjacentRow >= 0) {
+				return terrain[adjacentIndex];
+			}
+			break;
+	}
+	return TILE_OFF_LIMITS;
+}
+
+function doRandomMoves(terrain) {
 	while(true) {
 		// Pick a random tile.
 		let index = Math.floor(Math.random() * size);
