@@ -15,60 +15,44 @@ class Bot {
 		this.width = width;
 		this.height = height;
 		this.size = width * height;
+
+		//true, if bot found an adjacent enemy line with low values
+		this.isInfiltrating = false;
 	}
 
-	update(turn, terrain, cities, generals) {
+	update(turn, armies, terrain, cities, generals) {
+		this.armies = armies;
+		this.terrain = terrain;
+		this.cities = cities;
+		this.generals = generals;
+
+		this.ownedTiles = this.getOwnedTiles();
+
 		//wait for the first 10 moves
-		if(turn > 10) {
-			this.doRandomMoves(terrain, cities);
+		if(turn <= 20) {
+			
+		} else if(turn % 25 == 0) {
+			//this.spreadPhase();
+		} else {
+			//this.discover();
 		}
 	}
 
-	getAdjacentTiles(index, terrain) {
-		let up = this.getAdjacentTile(terrain, index, -width);
-		let right = this.getAdjacentTile(terrain, index, 1);
-		let down = this.getAdjacentTile(terrain, index, width);
-		let left = this.getAdjacentTile(terrain, index, -1);
-		return tileNeighbours = {
-			left, right, up, down
-		};
+	discover() {
+		
 	}
 
-	getAdjacentTile(terrain, index, distance) {
-		let adjacentIndex = index + distance;
-		let curRow = Math.floor(index / this.width);
-		let adjacentRow = Math.floor(adjacentIndex / this.width);
-		switch(distance) {
-			//search for either right or left neighbor
-			case 1:
-			case -1:
-				//return only if it won't get out of grid bounds
-				if(adjacentRow === curRow) {
-					return terrain[adjacentIndex];
-				}
-				break;
-			//down
-			case width:
-				if(adjacentRow < this.height) {
-					return terrain[adjacentIndex];
-				}
-				break;
-			//up
-			case -width:
-				if(adjacentRow >= 0) {
-					return terrain[adjacentIndex];
-				}
-				break;
-		}
-		return this.TILE_OFF_LIMITS;
+	//every tile just got an extra unit, move them to conquer new tiles 
+	spreadUnits() {
+
 	}
 
-	doRandomMoves(terrain, cities) {
+	doRandomMoves() {
 		while(true) {
 			// Pick a random tile.
 			let index = Math.floor(Math.random() * this.size);
 			// If we own this tile, make a random move starting from it.
-			if (terrain[index] === this.playerIndex) {
+			if (this.terrain[index] === this.playerIndex) {
 				let row = Math.floor(index / this.width);
 				let col = index % this.width;
 				let endIndex = index;
@@ -87,7 +71,7 @@ class Bot {
 				}
 
 				// Would we be attacking a city? Don't attack cities.
-				if (cities.indexOf(endIndex) >= 0) {
+				if (this.cities.indexOf(endIndex) >= 0) {
 					continue;
 				}
 
@@ -95,6 +79,56 @@ class Bot {
 				break;
 			}
 		}
+	}
+
+	getAdjacentTiles(index) {
+		let up = this.getAdjacentTile(this.terrain, index, -width);
+		let right = this.getAdjacentTile(this.terrain, index, 1);
+		let down = this.getAdjacentTile(this.terrain, index, width);
+		let left = this.getAdjacentTile(this.terrain, index, -1);
+		return tileNeighbours = {
+			left, right, up, down
+		};
+	}
+
+	getAdjacentTile(index, distance) {
+		let adjacentIndex = index + distance;
+		let curRow = Math.floor(index / this.width);
+		let adjacentRow = Math.floor(adjacentIndex / this.width);
+		switch(distance) {
+			//search for either right or left neighbor
+			case 1:
+			case -1:
+				//return only if it won't get out of grid bounds
+				if(adjacentRow === curRow) {
+					return this.terrain[adjacentIndex];
+				}
+				break;
+			//down
+			case width:
+				if(adjacentRow < this.height) {
+					return this.terrain[adjacentIndex];
+				}
+				break;
+			//up
+			case -width:
+				if(adjacentRow >= 0) {
+					return this.terrain[adjacentIndex];
+				}
+				break;
+		}
+		return this.TILE_OFF_LIMITS;
+	}
+
+	getOwnedTiles() {
+		let ownedTiles = new Map();
+		for(let i = 0; i < this.terrain.length; i++) {
+			let tile = this.terrain[i];
+			if(tile === this.playerIndex) {
+				ownedTiles.set(i, this.armies[i]);
+			}
+		}
+		return ownedTiles;
 	}
 }
 

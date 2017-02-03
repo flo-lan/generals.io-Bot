@@ -74,7 +74,7 @@ socket.on('game_update', function(data) {
 	// terrain[0] is the top-left corner of the map.
 	let terrain = map.slice(size + 2, map.length - 1);	
 
-	bot.update(turn, terrain, cities, generals);
+	bot.update(turn, armies, terrain, cities, generals);
 });
 
 socket.on('game_lost', leaveGame);
