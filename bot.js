@@ -1,6 +1,6 @@
 class Bot {
 
-	constructor(socket, playerIndex, width, height) {
+	constructor(socket, generals, playerIndex, width, height) {
 		// Terrain Constants.
 		// Any tile with a nonnegative value is owned by the player corresponding to its value.
 		// For example, a tile with value 1 is owned by the player with playerIndex = 1.
@@ -18,6 +18,16 @@ class Bot {
 
 		//true, if bot found an adjacent enemy line with low values
 		this.isInfiltrating = false;
+
+		this.initGeneral(generals);
+	}
+
+	initGeneral(generals) {
+		for(let general of generals) {
+			if(general != -1) {
+				this.ownGeneral = general;
+			}
+		}
 	}
 
 	update(turn, armies, terrain, cities, generals) {
@@ -29,17 +39,17 @@ class Bot {
 		this.ownedTiles = this.getOwnedTiles();
 
 		//wait for the first 10 moves
-		if(turn <= 20) {
+		/*if(turn <= 20) {
 			
-		} else if(turn % 25 == 0) {
+		} else*/ if(turn % 25 == 0) {
 			//this.spreadPhase();
 		} else {
-			//this.discover();
+			this.discover();
 		}
 	}
 
 	discover() {
-		
+
 	}
 
 	//every tile just got an extra unit, move them to conquer new tiles 
@@ -82,11 +92,11 @@ class Bot {
 	}
 
 	getAdjacentTiles(index) {
-		let up = this.getAdjacentTile(this.terrain, index, -width);
-		let right = this.getAdjacentTile(this.terrain, index, 1);
-		let down = this.getAdjacentTile(this.terrain, index, width);
-		let left = this.getAdjacentTile(this.terrain, index, -1);
-		return tileNeighbours = {
+		let up = this.getAdjacentTile(index, -this.width);
+		let right = this.getAdjacentTile(index, 1);
+		let down = this.getAdjacentTile(index, this.width);
+		let left = this.getAdjacentTile(index, -1);
+		return {
 			left, right, up, down
 		};
 	}
@@ -95,29 +105,30 @@ class Bot {
 		let adjacentIndex = index + distance;
 		let curRow = Math.floor(index / this.width);
 		let adjacentRow = Math.floor(adjacentIndex / this.width);
+	
 		switch(distance) {
 			//search for either right or left neighbor
 			case 1:
 			case -1:
 				//return only if it won't get out of grid bounds
 				if(adjacentRow === curRow) {
-					return this.terrain[adjacentIndex];
+					return {"index": adjacentIndex, "value": this.terrain[adjacentIndex]};
 				}
 				break;
 			//down
-			case width:
+			case this.width:
 				if(adjacentRow < this.height) {
-					return this.terrain[adjacentIndex];
+					return {"index": adjacentIndex, "value": this.terrain[adjacentIndex]};
 				}
 				break;
 			//up
-			case -width:
+			case -this.width:
 				if(adjacentRow >= 0) {
-					return this.terrain[adjacentIndex];
+					return {"index": adjacentIndex, "value": this.terrain[adjacentIndex]};
 				}
 				break;
 		}
-		return this.TILE_OFF_LIMITS;
+		return {"index": adjacentIndex, "value": this.TILE_OFF_LIMITS};
 	}
 
 	getOwnedTiles() {

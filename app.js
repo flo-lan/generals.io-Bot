@@ -63,7 +63,7 @@ socket.on('game_update', function(data) {
 		height = map[1];
 		size = width * height;
 
-		bot = new Bot(socket, playerIndex, width, height);
+		bot = new Bot(socket, generals, playerIndex, width, height);
 	}
 
 	// The next |size| terms are army values.
