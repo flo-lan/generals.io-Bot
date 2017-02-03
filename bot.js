@@ -1,199 +1,101 @@
-var io = require('socket.io-client');
-var config = require('./config.js');
+class Bot {
 
-var socket = io('http://bot.generals.io');
+	constructor(socket, playerIndex, width, height) {
+		// Terrain Constants.
+		// Any tile with a nonnegative value is owned by the player corresponding to its value.
+		// For example, a tile with value 1 is owned by the player with playerIndex = 1.
+		this.TILE_EMPTY = -1;
+		this.TILE_MOUNTAIN = -2;
+		this.TILE_FOG = -3;
+		this.TILE_FOG_OBSTACLE = -4; // Cities and Mountains show up as Obstacles in the fog of war.
+		this.TILE_OFF_LIMITS = -5;
 
-socket.on('disconnect', function() {
-	console.error('Disconnected from server.');
-
-	//terminate with failure
-	process.exit(1);
-});
-
-socket.on('connect', function() {
-	console.log('Connected to server.');
-
-	let user_id = config.user_id;
-	let username = config.username;
-
-	// Set the username for the bot.
-	socket.emit('set_username', user_id, username);
-	let custom_game_id = config.custom_game_id;
-	socket.emit('join_private', custom_game_id, user_id);
-	socket.emit('set_force_start', custom_game_id, true);
-	console.log('Joined custom game at http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
-
-	// Join the 1v1 queue.
-	// socket.emit('join_1v1', user_id);
-
-	// Join the FFA queue.
-	// socket.emit('play', user_id);
-
-	// Join a 2v2 team.
-	// socket.emit('join_team', 'team_name', user_id);
-});
-
-// Terrain Constants.
-// Any tile with a nonnegative value is owned by the player corresponding to its value.
-// For example, a tile with value 1 is owned by the player with playerIndex = 1.
-const TILE_EMPTY = -1;
-const TILE_MOUNTAIN = -2;
-const TILE_FOG = -3;
-const TILE_FOG_OBSTACLE = -4; // Cities and Mountains show up as Obstacles in the fog of war.
-const TILE_OFF_LIMITS = -5;
-
-// Game data.
-let playerIndex;
-let generals;
-let cities = [];
-let map = [];
-let size, width, height;
-
-socket.on('game_start', function(data) {
-	// Get ready to start playing the game.
-	playerIndex = data.playerIndex;
-	let replay_url = 'http://bot.generals.io/replays/' + encodeURIComponent(data.replay_id);
-	console.log('Game starting! The replay will be available after the game at ' + replay_url);
-	socket.emit('chat_message', data.chat_room, "gl hf");
-});
-
-socket.on('game_update', function(data) {
-	// Patch the city and map diffs into our local variables.
-	cities = patch(cities, data.cities_diff);
-	map = patch(map, data.map_diff);
-	generals = data.generals;
-
-	// The first two terms in |map| are the dimensions.
-	width = map[0];
-	height = map[1];
-	size = width * height;
-
-	// The next |size| terms are army values.
-	// armies[0] is the top-left corner of the map.
-	let armies = map.slice(2, size + 1);
-
-	// The last |size| terms are terrain values.
-	// terrain[0] is the top-left corner of the map.
-	let terrain = map.slice(size + 2, map.length - 1);
-	let turn = data.turn;
-
-	//wait for the first 10 moves
-	if(turn > 10) {
-		doRandomMoves(terrain);
+		this.socket = socket;
+		this.playerIndex = playerIndex;
+		this.width = width;
+		this.height = height;
+		this.size = width * height;
 	}
-});
 
-function getAdjacentTiles(index, terrain) {
-	let up = getAdjacentTile(terrain, index, -width);
-	let right = getAdjacentTile(terrain, index, 1);
-	let down = getAdjacentTile(terrain, index, width);
-	let left = getAdjacentTile(terrain, index, -1);
-	return tileNeighbours = {
-		left, right, up, down
-	};
-}
-
-function getAdjacentTile(terrain, index, distance) {
-	let adjacentIndex = index + distance;
-	let curRow = Math.floor(index / width);
-	let adjacentRow = Math.floor(adjacentIndex / width);
-	switch(distance) {
-		//search for either right or left neighbor
-		case 1:
-		case -1:
-			//return only if it won't get out of grid bounds
-			if(adjacentRow == curRow) {
-				return terrain[adjacentIndex];
-			}
-			break;
-		//down
-		case width:
-			if(adjacentRow < height) {
-				return terrain[adjacentIndex];
-			}
-			break;
-		//up
-		case -width:
-			if(adjacentRow >= 0) {
-				return terrain[adjacentIndex];
-			}
-			break;
+	update(turn, terrain, cities, generals) {
+		//wait for the first 10 moves
+		if(turn > 10) {
+			this.doRandomMoves(terrain, cities);
+		}
 	}
-	return TILE_OFF_LIMITS;
-}
 
-function doRandomMoves(terrain) {
-	while(true) {
-		// Pick a random tile.
-		let index = Math.floor(Math.random() * size);
+	getAdjacentTiles(index, terrain) {
+		let up = this.getAdjacentTile(terrain, index, -width);
+		let right = this.getAdjacentTile(terrain, index, 1);
+		let down = this.getAdjacentTile(terrain, index, width);
+		let left = this.getAdjacentTile(terrain, index, -1);
+		return tileNeighbours = {
+			left, right, up, down
+		};
+	}
 
-		// If we own this tile, make a random move starting from it.
-		if (terrain[index] === playerIndex) {
-			let row = Math.floor(index / width);
-			let col = index % width;
-			let endIndex = index;
+	getAdjacentTile(terrain, index, distance) {
+		let adjacentIndex = index + distance;
+		let curRow = Math.floor(index / this.width);
+		let adjacentRow = Math.floor(adjacentIndex / this.width);
+		switch(distance) {
+			//search for either right or left neighbor
+			case 1:
+			case -1:
+				//return only if it won't get out of grid bounds
+				if(adjacentRow === curRow) {
+					return terrain[adjacentIndex];
+				}
+				break;
+			//down
+			case width:
+				if(adjacentRow < this.height) {
+					return terrain[adjacentIndex];
+				}
+				break;
+			//up
+			case -width:
+				if(adjacentRow >= 0) {
+					return terrain[adjacentIndex];
+				}
+				break;
+		}
+		return this.TILE_OFF_LIMITS;
+	}
 
-			let rand = Math.random();
-			if (rand < 0.25 && col > 0) { // left
-				endIndex--;
-			} else if (rand < 0.5 && col < width - 1) { // right
-				endIndex++;
-			} else if (rand < 0.75 && row < height - 1) { // down
-				endIndex += width;
-			} else if (row > 0) { //up
-				endIndex -= width;
-			} else {
-				continue;
+	doRandomMoves(terrain, cities) {
+		while(true) {
+			// Pick a random tile.
+			let index = Math.floor(Math.random() * this.size);
+			// If we own this tile, make a random move starting from it.
+			if (terrain[index] === this.playerIndex) {
+				let row = Math.floor(index / this.width);
+				let col = index % this.width;
+				let endIndex = index;
+
+				let rand = Math.random();
+				if (rand < 0.25 && col > 0) { // left
+					endIndex--;
+				} else if (rand < 0.5 && col < this.width - 1) { // right
+					endIndex++;
+				} else if (rand < 0.75 && row < this.height - 1) { // down
+					endIndex += this.width;
+				} else if (row > 0) { //up
+					endIndex -= this.width;
+				} else {
+					continue;
+				}
+
+				// Would we be attacking a city? Don't attack cities.
+				if (cities.indexOf(endIndex) >= 0) {
+					continue;
+				}
+
+				this.socket.emit('attack', index, endIndex);
+				break;
 			}
-
-			// Would we be attacking a city? Don't attack cities.
-			if (cities.indexOf(endIndex) >= 0) {
-				continue;
-			}
-
-			socket.emit('attack', index, endIndex);
-			break;
 		}
 	}
 }
 
-socket.on('game_lost', leaveGame);
-
-socket.on('game_won', leaveGame);
-
-function leaveGame() {
-	socket.emit('leave_game');
-}
-
-/* Returns a new array created by patching the diff into the old array.
- * The diff formatted with alternating matching and mismatching segments:
- * <Number of matching elements>
- * <Number of mismatching elements>
- * <The mismatching elements>
- * ... repeated until the end of diff.
- * Example 1: patching a diff of [1, 1, 3] onto [0, 0] yields [0, 3].
- * Example 2: patching a diff of [0, 1, 2, 1] onto [0, 0] yields [2, 0].
- */
-function patch(old, diff) {
-	let out = [];
-	let i = 0;
-	while (i < diff.length) {
-		if (diff[i]) {  // matching
-			Array.prototype.push.apply(out, old.slice(out.length, out.length + diff[i]));
-		}
-		i++;
-		if (i < diff.length && diff[i]) {  // mismatching
-			Array.prototype.push.apply(out, diff.slice(i + 1, i + 1 + diff[i]));
-			i += diff[i];
-		}
-		i++;
-	}
-	return out;
-}
-
-socket.on('game_start', function(data) {
-	// Get ready to start playing the game.
-	playerIndex = data.playerIndex;
-	let replay_url = 'http://bot.generals.io/replays/' + encodeURIComponent(data.replay_id);
-	console.log('Game starting! The replay will be available after the game at ' + replay_url);
-});
+module.exports = Bot;
