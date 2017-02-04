@@ -38,18 +38,19 @@ class Bot {
 
 		this.ownedTiles = this.getOwnedTiles();
 
-		//wait for the first 10 moves
-		/*if(turn <= 20) {
-			
-		} else*/ if(turn % 25 == 0) {
+		
+		if(turn <= 20) {
+			//wait for 10 armies on the general
+		} else if(turn % 25 == 0) {
 			//this.spreadPhase();
-		} else {
+		} else if(turn == 1){
 			this.discover();
 		}
 	}
 
 	discover() {
-
+		//get all tiles, that can be reached with a maximum of 10 moves
+		let reachableTiles = this.bfs(this.ownGeneral, 10);
 	}
 
 	//every tile just got an extra unit, move them to conquer new tiles 
@@ -97,7 +98,7 @@ class Bot {
 		let down = this.getAdjacentTile(index, this.width);
 		let left = this.getAdjacentTile(index, -1);
 		return {
-			left, right, up, down
+			up, right, down, left
 		};
 	}
 
@@ -135,11 +136,61 @@ class Bot {
 		let ownedTiles = new Map();
 		for(let i = 0; i < this.terrain.length; i++) {
 			let tile = this.terrain[i];
-			if(tile === this.playerIndex) {
+			if(tile == this.playerIndex) {
 				ownedTiles.set(i, this.armies[i]);
 			}
 		}
 		return ownedTiles;
+	}
+
+	//breadth first search. get all reachble tiles in radius
+	bfs(node, radius) {
+		let isVisited = Array.apply(null, Array(this.size)).map(function () { return false; })
+		isVisited[node] = true;
+		
+		let queue = [];
+		let curLayer = 0;
+		let curLayerTiles = 1;
+		let nextLayerTiles = 0;
+		let foundNodes = [];
+
+		queue.push(node);
+		while(queue.length > 0) {
+			let curTile = queue.shift();
+
+			//don't add starting node
+			if(curLayer != 0) {
+				foundNodes.push(curTile);
+			}
+			
+			let adjacentTiles = this.getAdjacentTiles(curTile);
+			//loop through adjacent tiles
+			for(let direction in adjacentTiles) {
+				if (adjacentTiles.hasOwnProperty(direction)) {
+					let nextTile = adjacentTiles[direction];
+					if(!isVisited[nextTile.index]) {
+						//tile can be moved on(ignore cities)
+						if(nextTile.value !== this.TILE_FOG_OBSTACLE && nextTile.value !== this.TILE_OFF_LIMITS &&
+						   nextTile.value !== this.TILE_MOUNTAIN && this.cities.indexOf(nextTile.index) < 0) {
+							queue.push(nextTile.index);
+							isVisited[nextTile.index] = true;
+							nextLayerTiles++;
+						}
+					}
+				}
+			}
+
+			//check if all tiles of current depth are already visited
+			if(--curLayerTiles == 0) {
+				//move to next layer, if radius reached -> stop
+				if(curLayer++ == radius) {
+					break;
+				}	
+				curLayerTiles = nextLayerTiles;
+				nextLayerTiles = 0;
+			}
+		}
+		return foundNodes;
 	}
 }
 
