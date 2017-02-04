@@ -320,7 +320,7 @@ class Bot {
 		let upperEdge = tileCoords.y;
 		let rightEdge = this.width - tileCoords.x;
 		let downEdge = this.height - tileCoords.y;
-		let leftEdge = tileCoords.y;
+		let leftEdge = tileCoords.x;
 		return Math.min(upperEdge, rightEdge, downEdge, leftEdge);
 	}
 }
