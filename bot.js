@@ -43,7 +43,7 @@ class Bot {
 			//wait for 10 armies on the general
 		} else if(turn % 25 == 0) {
 			//this.spreadPhase();
-		} else if(turn == 1){
+		} else {
 			this.discover();
 		}
 	}
