@@ -42,12 +42,14 @@ class Bot {
 		this.ownedTiles = this.getOwnedTiles();
 
 		
-		/*if(turn <= this.INITIAL_WAIT_TURNS) {
+		if(turn <= this.INITIAL_WAIT_TURNS) {
 			//wait for 10 armies on the general
-		} else*/ if(turn % this.REINFORCEMENT_INTERVAL == 0) {
+		} else if(turn % this.REINFORCEMENT_INTERVAL == 0) {
 			//this.spreadPhase();
-		} else if(turn == 1){
+		} else if(turn == this.INITIAL_WAIT_TURNS + 1){
 			this.discover();
+		} else {
+			this.doRandomMoves();
 		}
 	}
 
@@ -56,7 +58,13 @@ class Bot {
 		//get all tiles, that can be reached with a maximum of moves
 		let reachableTiles = this.bfs(this.ownGeneral, this.INITIAL_WAIT_TURNS / 2);
 		let discoverTile = this.chooseDiscoverTile(reachableTiles);
-		console.log(this.getCoordinatesFromTileID(discoverTile));
+		let path = this.dijkstra(this.ownGeneral, discoverTile);
+
+		let lastIndex = this.ownGeneral;
+		for(let attackingIndex of path) {
+			this.socket.emit('attack', lastIndex, attackingIndex);
+			lastIndex = attackingIndex;
+		}
 	}
 
 	//every tile just got an extra unit, move them to conquer new tiles 
@@ -149,6 +157,15 @@ class Bot {
 		return ownedTiles;
 	}
 
+	//needs a tile object with index and value field
+	isWalkable(tile) {
+		return tile.value !== this.TILE_FOG_OBSTACLE && 
+			tile.value !== this.TILE_OFF_LIMITS &&
+			tile.value !== this.TILE_MOUNTAIN && 
+			this.cities.indexOf(tile.index) < 0;
+
+	}
+
 	//breadth first search. get all reachble tiles in radius
 	bfs(node, radius) {
 		let isVisited = Array.apply(null, Array(this.size)).map(function () { return false; })
@@ -176,8 +193,7 @@ class Bot {
 					let nextTile = adjacentTiles[direction];
 					if(!isVisited[nextTile.index]) {
 						//tile can be moved on(ignore cities)
-						if(nextTile.value !== this.TILE_FOG_OBSTACLE && nextTile.value !== this.TILE_OFF_LIMITS &&
-						   nextTile.value !== this.TILE_MOUNTAIN && this.cities.indexOf(nextTile.index) < 0) {
+						if(this.isWalkable(nextTile)) {
 							queue.push(nextTile.index);
 							isVisited[nextTile.index] = true;
 							nextLayerTiles++;
@@ -199,6 +215,62 @@ class Bot {
 		return foundNodes;
 	}
 
+	//returns shortest path (as array) between start and end index
+	//no node weights
+	dijkstra(start, end) {
+		let isVisited = [];
+		let previous = [];
+		
+		for(let i = 0; i < this.size; i++) {
+			isVisited[i] = false;
+			previous[i] = i;
+		}
+
+		let queue = [];
+		queue.push(start);
+		isVisited[start] = true;
+
+		while(queue.length > 0) {
+			let curTile = queue.shift();
+			isVisited[curTile] = true;
+
+			let adjacentTiles = this.getAdjacentTiles(curTile);
+			//loop through adjacent tiles
+			for(let direction in adjacentTiles) {
+				if (adjacentTiles.hasOwnProperty(direction)) {
+					let nextTile = adjacentTiles[direction];
+					if(!isVisited[nextTile.index] && !queue.includes(nextTile.index) 
+						&& this.isWalkable(nextTile)) {
+						previous[nextTile.index] = curTile;
+						if(nextTile.index == end) {
+							return this.constructDijkstraPath(start, end, previous);
+						}
+						queue.push(nextTile.index);
+					}
+				}
+			}
+		}
+
+		//no path to end node found
+		console.log("Dijkstra found no path!")
+		return [];
+	}
+
+	//go from end backwards and reconstruct the path as an array
+	constructDijkstraPath(start, end, previous) {
+		let prevIndex;
+		let curIndex = end;
+		let path = [];
+		path.push(end);
+
+		while((prevIndex = previous[curIndex]) !== start) {
+			//insert at first index of array
+			path.unshift(prevIndex);
+			curIndex = prevIndex;
+		}
+		return path;
+	}
+
 	//!!!TODO: favour tiles near center
 	//returns the furthest possible tile id from the general, while beeing not too close to the edge
 	chooseDiscoverTile(tiles) {
@@ -213,7 +285,7 @@ class Bot {
 			let tile = tiles[i];
 			let edgeDistance = this.getDistanceFromEdgeForID(tile.id);
 			//choose first best tile, if it is at least 2 tiles away from edge
-			if(edgeDistance >= 2) {
+			if(edgeDistance > 2) {
 				return tile.id;
 			}
 
