@@ -56,6 +56,7 @@ class Bot {
 		//get all tiles, that can be reached with a maximum of moves
 		let reachableTiles = this.bfs(this.ownGeneral, this.INITIAL_WAIT_TURNS / 2);
 		let discoverTile = this.chooseDiscoverTile(reachableTiles);
+		console.log(this.getCoordinatesFromTileID(discoverTile));
 	}
 
 	//every tile just got an extra unit, move them to conquer new tiles 
@@ -198,6 +199,7 @@ class Bot {
 		return foundNodes;
 	}
 
+	//!!!TODO: favour tiles near center
 	//returns the furthest possible tile id from the general, while beeing not too close to the edge
 	chooseDiscoverTile(tiles) {
 		let generalCoords = this.getCoordinatesFromTileID(this.ownGeneral);
@@ -206,13 +208,16 @@ class Bot {
 		//choose by furthest away from edge first, then most steps
 		let alternativeTile = {"edgeDistance" : 0, "generalDistance": 0};
 
-		for(let tile of tiles) {
+		//first elements are the closest to the general
+		for(let i = tiles.length - 1; i >= 0; i--) {
+			let tile = tiles[i];
 			let edgeDistance = this.getDistanceFromEdgeForID(tile.id);
-			//choose tile, if it is at least 2 tiles away from edge
+			//choose first best tile, if it is at least 2 tiles away from edge
 			if(edgeDistance >= 2) {
 				return tile.id;
 			}
 
+			//save possible alternativeTile candidates
 			if(edgeDistance >= alternativeTile.edgeDistance) {
 				//either edgeDistance is greater, OR at least equal with a greater general distance
 				if(edgeDistance > alternativeTile.edgeDistance || 
@@ -223,7 +228,7 @@ class Bot {
 		}
 
 		if(alternativeTile.id === undefined) {
-			console.log("No tile found. Something is going wrong here.!"
+			console.log("No tile found. Something is going wrong here.!");
 		}
 
 		//no tile found with an edge distance of at least 2
