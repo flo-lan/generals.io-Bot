@@ -43,7 +43,7 @@ class Bot {
 
 		
 		if(turn <= this.INITIAL_WAIT_TURNS) {
-			//wait for 10 armies on the general
+			//wait for some armies to develop
 		} else if(turn % this.REINFORCEMENT_INTERVAL == 0) {
 			//this.spreadPhase();
 		} else if(turn == this.INITIAL_WAIT_TURNS + 1){
@@ -271,40 +271,37 @@ class Bot {
 		return path;
 	}
 
-	//!!!TODO: favour tiles near center
-	//returns the furthest possible tile id from the general, while beeing not too close to the edge
+	//returns the furthest possible tile id from the general, with maximum distance to edge
 	chooseDiscoverTile(tiles) {
 		let generalCoords = this.getCoordinatesFromTileID(this.ownGeneral);
 
-		//alternative tile, if no tiles with min edge distance was found
-		//choose by furthest away from edge first, then most steps
-		let alternativeTile = {"edgeDistance" : 0, "generalDistance": 0};
+		let optimalTile = {"id": -1, "edgeWeight": 0};
+
+		let maxGeneralDistance = tiles[tiles.length -1].generalDistance;
 
 		//first elements are the closest to the general
 		for(let i = tiles.length - 1; i >= 0; i--) {
 			let tile = tiles[i];
-			let edgeDistance = this.getDistanceFromEdgeForID(tile.id);
-			//choose first best tile, if it is at least 2 tiles away from edge
-			if(edgeDistance > 2) {
-				return tile.id;
+			let edgeWeight = this.getEdgeWeightForID(tile.id);
+			
+			//general distance is not at maximum anymore. ignore other tiles
+			if(tile.generalDistance < maxGeneralDistance) {
+				return optimalTile.id;
 			}
 
-			//save possible alternativeTile candidates
-			if(edgeDistance >= alternativeTile.edgeDistance) {
-				//either edgeDistance is greater, OR at least equal with a greater general distance
-				if(edgeDistance > alternativeTile.edgeDistance || 
-					tile.generalDistance > alternativeTile.generalDistance) {
-					alternativeTile = {"id": tile.id, "edgeDistance": edgeDistance, "generalDistance": tile.generalDistance};
-				}
+			//a tile with maximum generalDistance and 
+			if(edgeWeight > optimalTile.edgeWeight) {
+				optimalTile.id = tile.id;
+				optimalTile.edgeWeight = edgeWeight;
 			}
 		}
 
-		if(alternativeTile.id === undefined) {
+		//loop stopped, but optimal tile was found(meaning it was only 1 step away from general)
+		if(optimalTile.id != -1) {
+			return optimalTile.id;
+		} else {
 			console.log("No tile found. Something is going wrong here.!");
 		}
-
-		//no tile found with an edge distance of at least 2
-		return alternativeTile.id;
 	}
 
 	getCoordinatesFromTileID(id) {
@@ -314,14 +311,15 @@ class Bot {
 		}
 	}
 
-	//gets the distance to the closest edge. (e.g. coordinates 1,0 return 0 and 2,1 return 1)
-	getDistanceFromEdgeForID(id) {
+	//gets a calculated distance from closest edges 
+	//distance from closest edge * distance from closest edge on complementary side
+	getEdgeWeightForID(id) {
 		let tileCoords = this.getCoordinatesFromTileID(id);
 		let upperEdge = tileCoords.y;
 		let rightEdge = this.width - tileCoords.x;
 		let downEdge = this.height - tileCoords.y;
 		let leftEdge = tileCoords.x;
-		return Math.min(upperEdge, rightEdge, downEdge, leftEdge);
+		return Math.min(upperEdge, downEdge) * Math.min(leftEdge, rightEdge);
 	}
 }
 
