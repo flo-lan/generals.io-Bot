@@ -1,9 +1,8 @@
-var io = require('socket.io-client');
-var config = require('./config.js');
-var Bot = require('./bot.js');
-var Patcher = require('./updatePatcher.js');
+const io = require('socket.io-client');
+const config = require('./config.js');
+const Bot = require('./scripts/bot.js');
 
-var socket = io('http://bot.generals.io');
+const socket = io('http://bot.generals.io');
 
 socket.on('disconnect', function() {
 	console.error('Disconnected from server.');
@@ -51,30 +50,12 @@ socket.on('game_start', function(data) {
 });
 
 socket.on('game_update', function(data) {
-	// Patch the city and map diffs into our local variables.
-	cities = Patcher.patch(cities, data.cities_diff);
-	map = Patcher.patch(map, data.map_diff);
-	let generals = data.generals;
-
 	let turn = data.turn;
-	if(turn === 1) {
-		// The first two terms in |map| are the dimensions.
-		width = map[0];
-		height = map[1];
-		size = width * height;
-
-		bot = new Bot(socket, generals, playerIndex, width, height);
+	if(bot === undefined) {
+		bot = new Bot(socket, data);
 	}
 
-	// The next |size| terms are army values.
-	// armies[0] is the top-left corner of the map.
-	let armies = map.slice(2, size + 1);
-
-	// The last |size| terms are terrain values.
-	// terrain[0] is the top-left corner of the map.
-	let terrain = map.slice(size + 2, map.length - 1);	
-
-	bot.update(turn, armies, terrain, cities, generals);
+	bot.update(data);
 });
 
 socket.on('game_lost', leaveGame);
