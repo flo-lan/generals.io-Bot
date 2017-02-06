@@ -11,6 +11,7 @@ class Bot {
 		this.TILE_OFF_LIMITS = -5;
 
 		this.INITIAL_WAIT_TURNS = 24;
+		this.SECONDS_DISCOVER_TURN = Math.ceil(this.INITIAL_WAIT_TURNS * 1.5);
 		this.REINFORCEMENT_INTERVAL = 50;
 
 		this.socket = socket;
@@ -41,6 +42,7 @@ class Bot {
 
 		this.ownedTiles = this.getOwnedTiles();
 
+		//console.log("turn: " + turn + " armies: " + armies[this.ownGeneral]);
 		
 		if(turn <= this.INITIAL_WAIT_TURNS) {
 			//wait for some armies to develop
@@ -48,8 +50,8 @@ class Bot {
 			//this.spreadPhase();
 		} else if(turn == this.INITIAL_WAIT_TURNS + 1){
 			this.discover();
-		} else {
-			this.doRandomMoves();
+		} else if(turn == this.SECONDS_DISCOVER_TURN){
+			this.secondDiscover();
 		}
 	}
 
@@ -60,16 +62,27 @@ class Bot {
 		let discoverTile = this.chooseDiscoverTile(reachableTiles);
 		let path = this.dijkstra(this.ownGeneral, discoverTile);
 
-		let lastIndex = this.ownGeneral;
-		for(let attackingIndex of path) {
-			this.socket.emit('attack', lastIndex, attackingIndex);
-			lastIndex = attackingIndex;
-		}
+		this.queueAttackPath(this.ownGeneral, path);
+	}
+
+	//capture as many tiles as possible before turn 50
+	secondDiscover() {
+		let turns = Math.ceil((this.INITIAL_WAIT_TURNS + 1) / 2 / 2);
+		let path = this.decisionTreeSearch(this.ownGeneral, turns);
+		this.queueAttackPath(this.ownGeneral, path);
 	}
 
 	//every tile just got an extra unit, move them to conquer new tiles 
 	spreadUnits() {
 
+	}
+
+	queueAttackPath(startIndex, path) {
+		let lastIndex = startIndex;
+		for(let attackingIndex of path) {
+			this.socket.emit('attack', lastIndex, attackingIndex);
+			lastIndex = attackingIndex;
+		}
 	}
 
 	doRandomMoves() {
@@ -163,7 +176,19 @@ class Bot {
 			tile.value !== this.TILE_OFF_LIMITS &&
 			tile.value !== this.TILE_MOUNTAIN && 
 			this.cities.indexOf(tile.index) < 0;
+	}
 
+	//terrain must be walkable!!
+	//0 if it belongs to himself, 1 for empty and 3 for enemy tile
+	calcCaptureWeight(terrainValue) {
+		if(terrainValue == this.playerIndex) {
+			return 0;
+		} else if(terrainValue == this.TILE_EMPTY || terrainValue == this.TILE_FOG) {
+			return 1;
+		} else if(terrainValue < 0) {
+			//tile belonds to enemy
+			return 3;
+		}
 	}
 
 	//breadth first search. get all reachble tiles in radius
@@ -269,6 +294,51 @@ class Bot {
 			curIndex = prevIndex;
 		}
 		return path;
+	}
+
+	decisionTreeSearch(start, turns) {
+		let isVisited = Array.apply(null, Array(this.size)).map(function () { return false; })
+		isVisited[start] = true;
+		let path = this.decisionTreeSearchRec(start, turns, isVisited).path;
+		console.log(path);
+		//throw start node away
+		return path.slice(1) === undefined ? [] : path.slice(1);
+	}
+
+	//TODO: if enemy tile -> check if it can be captured
+	//weight: see calcCaptureWeight
+	//gets path with maximum amount of tile captures
+	decisionTreeSearchRec(start, turns, isVisited, weight = 0) {
+		isVisited[start] = true;
+		let path = [start];
+		//console.log(path);
+		let possiblePaths = [];
+
+		if(turns != 0) {
+			let adjacentTiles = this.getAdjacentTiles(start);
+			//loop through adjacent tiles
+			for(let direction in adjacentTiles) {
+				if (adjacentTiles.hasOwnProperty(direction)) {
+					let nextTile = adjacentTiles[direction];
+					if(!isVisited[nextTile.index] && this.isWalkable(nextTile)) {
+						let nextWeight = this.calcCaptureWeight(nextTile.value);
+						//slice isVisited for cloning array and not passing a reference
+						possiblePaths.push(this.decisionTreeSearchRec(nextTile.index, turns - 1, isVisited.slice(), nextWeight));
+					} 
+				}
+			}
+		}
+
+		//no more possible moves
+		if(possiblePaths.length == 0) {
+			return {"path": path, "weight": weight};
+		} else {
+			//more possible moves found
+			let bestPath = possiblePaths.reduce((prev, current) =>
+				(prev.weight > current.weight) ? prev : current
+			);
+			return {"path": path.concat(bestPath.path), "weight": weight + bestPath.weight};
+		}
 	}
 
 	//returns the furthest possible tile id from the general, with maximum distance to edge
