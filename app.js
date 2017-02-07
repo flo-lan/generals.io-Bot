@@ -34,12 +34,7 @@ socket.on('connect', function() {
 	// socket.emit('join_team', 'team_name', user_id);
 });
 
-// Game data.
 let bot;
-let playerIndex;
-let cities = [];
-let map = [];
-let height, width, size;
 
 socket.on('game_start', function(data) {
 	// Get ready to start playing the game.
@@ -50,7 +45,6 @@ socket.on('game_start', function(data) {
 });
 
 socket.on('game_update', function(data) {
-	let turn = data.turn;
 	if(bot === undefined) {
 		bot = new Bot(socket, data);
 	}

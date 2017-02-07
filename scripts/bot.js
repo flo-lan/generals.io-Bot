@@ -10,7 +10,9 @@ class Bot {
 		this.socket = socket;
 		this.playerIndex = data.playerIndex;
 
-		this.INITIAL_WAIT_TURNS = 24;
+		//armies are always given at even turn numbers
+		//turn 1 -> 1 turn 2 -> 2, turn 4 -> 3, turn 24 -> 13 (turn / 2 + 1) = army count
+		this.INITIAL_WAIT_TURNS = 23;
 		this.SECONDS_DISCOVER_TURN = Math.ceil(this.INITIAL_WAIT_TURNS * 1.5);
 		this.REINFORCEMENT_INTERVAL = 50;
 
@@ -40,11 +42,16 @@ class Bot {
 	//wait for a set amount of turns and then discover as far away from the general as possible
 	discover() {
 		//get all tiles, that can be reached with a maximum of moves
-		let reachableTiles = Algorithms.bfs(this.gameState, this.gameMap.ownGeneral, this.INITIAL_WAIT_TURNS / 2);
+		let reachableTiles = Algorithms.bfs(this.gameState, this.gameMap.ownGeneral, this.armiesReceivedTillTurn(this.INITIAL_WAIT_TURNS + 1));
 		let discoverTile = Heuristics.chooseDiscoverTile(this.gameMap, reachableTiles);
 		let path = Algorithms.dijkstra(this.gameState, this.gameMap.ownGeneral, discoverTile);
 
 		this.queueAttackPath(this.gameMap.ownGeneral, path);
+	}
+
+	//gets the amount of armies that the general produced until a given turn
+	armiesReceivedTillTurn(turn) {
+		return (turn / 2) + 1;
 	}
 
 	//TODO: calculate at every step and maybe take waiting into decision tree(also moving on a tile multiple times)
