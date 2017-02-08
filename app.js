@@ -35,6 +35,7 @@ socket.on('connect', function() {
 });
 
 let bot;
+let playerIndex;
 
 socket.on('game_start', function(data) {
 	// Get ready to start playing the game.
@@ -46,7 +47,7 @@ socket.on('game_start', function(data) {
 
 socket.on('game_update', function(data) {
 	if(bot === undefined) {
-		bot = new Bot(socket, data);
+		bot = new Bot(socket, playerIndex, data);
 	}
 
 	bot.update(data);

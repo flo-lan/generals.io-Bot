@@ -6,14 +6,14 @@ const Heuristics = require('./heuristics.js');
 
 class Bot {
 
-	constructor(socket, data) {
+	constructor(socket, playerIndex, data) {
 		this.socket = socket;
-		this.playerIndex = data.playerIndex;
+		this.playerIndex = playerIndex;
 
 		//armies are always given at even turn numbers
 		//turn 1 -> 1 turn 2 -> 2, turn 4 -> 3, turn 24 -> 13 (turn / 2 + 1) = army count
 		this.INITIAL_WAIT_TURNS = 23;
-		this.SECONDS_DISCOVER_TURN = Math.ceil(this.INITIAL_WAIT_TURNS * 1.5);
+		this.SECONDS_DISCOVER_TURN = Math.ceil((this.INITIAL_WAIT_TURNS + 1) * 1.5);
 		this.REINFORCEMENT_INTERVAL = 50;
 
 		//true, if bot found an adjacent enemy line with low values
@@ -27,14 +27,15 @@ class Bot {
 
 	update(data) {
 		this.gameState.update(data);
-		
+		console.log("turn: " + data.turn + " armies: " +this.gameState.armies[this.gameMap.ownGeneral]);
 		if(this.gameState.turn <= this.INITIAL_WAIT_TURNS) {
 			//wait for some armies to develop
 		} else if(this.gameState.turn % this.REINFORCEMENT_INTERVAL == 0) {
 			//this.spreadPhase();
 		} else if(this.gameState.turn == this.INITIAL_WAIT_TURNS + 1) {
 			this.discover();
-		} else if(this.gameState.turn == this.SECONDS_DISCOVER_TURN) {
+		} else if(this.gameState.turn >= this.SECONDS_DISCOVER_TURN 
+			&& this.gameState.turn < this.REINFORCEMENT_INTERVAL) {
 			this.secondDiscover();
 		}
 	}
@@ -46,7 +47,7 @@ class Bot {
 		let discoverTile = Heuristics.chooseDiscoverTile(this.gameMap, reachableTiles);
 		let path = Algorithms.dijkstra(this.gameState, this.gameMap.ownGeneral, discoverTile);
 
-		this.queueAttackPath(this.gameMap.ownGeneral, path);
+		this.queueAttackPath(path);
 	}
 
 	//gets the amount of armies that the general produced until a given turn
@@ -58,8 +59,10 @@ class Bot {
 	//capture as many tiles as possible before turn 50
 	secondDiscover() {
 		let turns = Math.ceil((this.INITIAL_WAIT_TURNS + 1) / 2 / 2);
-		let path = Algorithms.decisionTreeSearch(this.gameState, this.gameMap.ownGeneral, turns);
-		this.queueAttackPath(this.gameMap.ownGeneral, path);
+		let moveableTiles = this.gameMap.getMoveableTiles(this.gameState, this.playerIndex);
+		
+		let move = Algorithms.decisionTreeSearch(this.gameState, moveableTiles, turns);
+		this.move(move);
 	}
 
 	//every tile just got an extra unit, move them to conquer new tiles 
@@ -67,11 +70,15 @@ class Bot {
 
 	}
 
-	queueAttackPath(startIndex, path) {
-		let lastIndex = startIndex;
-		for(let attackingIndex of path) {
-			this.socket.emit('attack', lastIndex, attackingIndex);
-			lastIndex = attackingIndex;
+	queueAttackPath(moves) {
+		for(let move of moves) {
+			this.move(move);
+		}
+	}
+
+	move(move) {
+		if(move.end != -1) {
+			this.socket.emit('attack', move.start, move.end);
 		}
 	}
 }

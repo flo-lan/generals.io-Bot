@@ -66,9 +66,10 @@ class Algorithms {
 			previous[i] = i;
 		}
 
+		previous[start] = -1;
+
 		let queue = [];
 		queue.push(start);
-		isVisited[start] = true;
 
 		while(queue.length > 0) {
 			let curTile = queue.shift();
@@ -103,34 +104,33 @@ class Algorithms {
 		let path = [];
 		path.push(end);
 
-		while((prevIndex = previous[curIndex]) !== start) {
+		//start node has -1 as previous
+		while((prevIndex = previous[curIndex]) != -1) {
 			//insert at first index of array
-			path.unshift(prevIndex);
+			path.unshift({"start": prevIndex, "end": curIndex});
 			curIndex = prevIndex;
 		}
 		return path;
 	}
 
-	static decisionTreeSearch(gameState, start, turns) {
-		let isVisited = Array.apply(null, Array(this.gameMap.size)).map(function () { return false; })
-		isVisited[start] = true;
-
+	static decisionTreeSearch(gameState, startPoints, turns) {
 		//to avoid passing the gameState in every recursion
 		this.curGameState = gameState;
-		let path = this.decisionTreeSearchRec(start, turns, isVisited).path;
+		let moves = [];
 
-		//throw start node away
-		return path.slice(1) === undefined ? [] : path.slice(1);
+		for(let start of startPoints) {
+			moves.push(this.decisionTreeSearchRec(start, turns));
+		}
+
+		return this.getBestMove(moves);
 	}
 
 	//TODO: if enemy tile -> check if it can be captured
+	//TODO: simulate new generated armies and moved armies
 	//weight: see calcCaptureWeight
-	//gets path with maximum amount of tile captures
-	static decisionTreeSearchRec(start, turns, isVisited, weight = 0) {
-		isVisited[start] = true;
-		let path = [start];
-		//console.log(path);
-		let possiblePaths = [];
+	//gets move with maximum amount of tile captures
+	static decisionTreeSearchRec(start, turns, weight = 0) {
+		let possibleMoves = [];
 
 		if(turns != 0) {
 			let adjacentTiles = this.gameMap.getAdjacentTiles(this.curGameState, start);
@@ -138,25 +138,31 @@ class Algorithms {
 			for(let direction in adjacentTiles) {
 				if (adjacentTiles.hasOwnProperty(direction)) {
 					let nextTile = adjacentTiles[direction];
-					if(!isVisited[nextTile.index] && this.gameMap.isWalkable(this.curGameState, nextTile)) {
+					if(this.gameMap.isWalkable(this.curGameState, nextTile)) {
 						let nextWeight = Heuristics.calcCaptureWeight(this.playerIndex, nextTile.value);
-						//slice isVisited for cloning array and not passing a reference
-						possiblePaths.push(this.decisionTreeSearchRec(nextTile.index, turns - 1, isVisited.slice(), nextWeight));
+						possibleMoves.push(this.decisionTreeSearchRec(nextTile.index, turns - 1, nextWeight));
 					} 
 				}
 			}
+
+			//try waiting a turn without moving
+			possibleMoves.push(this.decisionTreeSearchRec(start, turns - 1, 0));
 		}
 
-		//no more possible moves
-		if(possiblePaths.length == 0) {
-			return {"path": path, "weight": weight};
+		if(possibleMoves.length == 0) {
+			//no more possible moves
+			return {"start": start, "end": -1, "weight": weight};
 		} else {
 			//more possible moves found
-			let bestPath = possiblePaths.reduce((prev, current) =>
-				(prev.weight > current.weight) ? prev : current
-			);
-			return {"path": path.concat(bestPath.path), "weight": weight + bestPath.weight};
+			let bestPath = this.getBestMove(possibleMoves);
+			return {"start": start, "end": bestPath.start, "weight": weight + bestPath.weight};
 		}
+	}
+
+	static getBestMove(moves) {
+		return moves.reduce((prev, current) =>
+			(prev.weight > current.weight) ? prev : current
+		);
 	}
 }
 module.exports = Algorithms;

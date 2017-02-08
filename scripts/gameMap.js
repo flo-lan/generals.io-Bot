@@ -76,6 +76,19 @@ class GameMap {
 		return ownedTiles;
 	}
 
+	//takes a list of tiles and returns a list of all those with at least more than 1 unit 
+	getMoveableTiles(gameState, playerIndex) {
+		let tiles = [];
+		let ownedTiles = this.getOwnedTiles(gameState, playerIndex);
+		for (var [key, value] of ownedTiles) {
+			if(value > 1) {
+				tiles.push(key);
+			}
+		}
+			
+		return tiles;
+	}
+
 	//gets a calculated distance from closest edges 
 	//distance from closest edge * distance from closest edge on complementary side
 	getEdgeWeightForID(id) {

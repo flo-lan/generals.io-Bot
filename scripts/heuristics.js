@@ -2,6 +2,7 @@ const TILE = require('./tile.js');
 
 class Heuristics {
 	
+	//TODO: choose by manhatten distance, not breadth search distance
 	//returns the furthest possible tile id from the general, with maximum distance to edge
 	//tiles are arrays of Objects with id and generalDistance properties
 	static chooseDiscoverTile(gameMap, tiles) {
