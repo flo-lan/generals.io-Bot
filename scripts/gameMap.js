@@ -2,10 +2,11 @@ const TILE = require('./tile.js');
 
 class GameMap {
 
-	constructor(width, height, generals) {
+	constructor(width, height, playerIndex, generals) {
 		this.width = width;
 		this.height = height;
 		this.size = width * height;
+		this.playerIndex = playerIndex;
 		this.initGeneral(generals);
 	}
 
@@ -22,7 +23,11 @@ class GameMap {
 		return tile.value !== TILE.FOG_OBSTACLE && 
 			tile.value !== TILE.OFF_LIMITS &&
 			tile.value !== TILE.MOUNTAIN && 
-			gameState.cities.indexOf(tile.index) < 0;
+			!this.isCity(gameState, tile);
+	}
+
+	isCity(gameState, tile) {
+		return gameState.cities.indexOf(tile.index) >= 0;
 	}
 
 	getAdjacentTiles(gameState, index) {
@@ -65,11 +70,11 @@ class GameMap {
 		return {"index": adjacentIndex, "value": TILE.OFF_LIMITS};
 	}
 
-	getOwnedTiles(gameState, playerIndex) {
+	getOwnedTiles(gameState) {
 		let ownedTiles = new Map();
 		for(let i = 0; i < gameState.terrain.length; i++) {
 			let tile = gameState.terrain[i];
-			if(tile == playerIndex) {
+			if(tile == this.playerIndex) {
 				ownedTiles.set(i, gameState.armies[i]);
 			}
 		}
@@ -77,9 +82,9 @@ class GameMap {
 	}
 
 	//takes a list of tiles and returns a list of all those with at least more than 1 unit 
-	getMoveableTiles(gameState, playerIndex) {
+	getMoveableTiles(gameState) {
 		let tiles = [];
-		let ownedTiles = this.getOwnedTiles(gameState, playerIndex);
+		let ownedTiles = this.getOwnedTiles(gameState);
 		for (var [key, value] of ownedTiles) {
 			if(value > 1) {
 				tiles.push(key);
