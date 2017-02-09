@@ -94,8 +94,8 @@ class GameMap {
 	}
 
 	manhattenDistance(index1, index2) {
-		let coord1 = getCoordinatesFromTileID(index1);
-		let coord2 = getCoordinatesFromTileID(index2);
+		let coord1 = this.getCoordinatesFromTileID(index1);
+		let coord2 = this.getCoordinatesFromTileID(index2);
 		return Math.abs(coord1.x - coord2.x) + Math.abs(coord1.y - coord2.y);
 	}
 
