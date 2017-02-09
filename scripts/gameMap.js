@@ -70,22 +70,10 @@ class GameMap {
 		return {"index": adjacentIndex, "value": TILE.OFF_LIMITS};
 	}
 
-	getOwnedTiles(gameState) {
-		let ownedTiles = new Map();
-		for(let i = 0; i < gameState.terrain.length; i++) {
-			let tile = gameState.terrain[i];
-			if(tile == this.playerIndex) {
-				ownedTiles.set(i, gameState.armies[i]);
-			}
-		}
-		return ownedTiles;
-	}
-
 	//takes a list of tiles and returns a list of all those with at least more than 1 unit 
 	getMoveableTiles(gameState) {
 		let tiles = [];
-		let ownedTiles = this.getOwnedTiles(gameState);
-		for (var [key, value] of ownedTiles) {
+		for (var [key, value] of gameState.ownTiles) {
 			if(value > 1) {
 				tiles.push(key);
 			}
@@ -103,6 +91,12 @@ class GameMap {
 		let downEdge = this.height - tileCoords.y;
 		let leftEdge = tileCoords.x;
 		return Math.min(upperEdge, downEdge) * Math.min(leftEdge, rightEdge);
+	}
+
+	manhattenDistance(index1, index2) {
+		let coord1 = getCoordinatesFromTileID(index1);
+		let coord2 = getCoordinatesFromTileID(index2);
+		return Math.abs(coord1.x - coord2.x) + Math.abs(coord1.y - coord2.y);
 	}
 
 	getCoordinatesFromTileID(id) {

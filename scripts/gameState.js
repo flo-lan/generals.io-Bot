@@ -3,9 +3,14 @@ const patch = require('./updatePatcher.js');
 
 class GameState {
 
-	constructor(data) {
+	constructor(data, playerIndex) {
 		this.cities = [];
 		this.map = [];
+
+		this.playerIndex = playerIndex;
+		this.ownTiles = new Map();
+		this.enemyTiles = new Map();
+
 		this.update(data);
 	}
 
@@ -28,7 +33,24 @@ class GameState {
 
 		// The last |size| terms are terrain values.
 		// terrain[0] is the top-left corner of the map.
-		this.terrain = this.map.slice(this.size + 2, this.map.length - 1);	
+		this.terrain = this.map.slice(this.size + 2, this.map.length - 1);
+		this.updatePlayerTiles();
+	}
+
+	updatePlayerTiles() {
+		this.ownTiles.clear();
+		this.enemyTiles.clear();
+		for(let i = 0; i < this.terrain.length; i++) {
+			let tile = this.terrain[i];
+			if(tile >= 0) {
+				let armies = this.armies[i];
+				if(tile == this.playerIndex) {
+					this.ownTiles.set(i, armies);
+				} else {
+					this.enemyTiles.set(i, armies);
+				}
+			}
+		}
 	}
 }
 

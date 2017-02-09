@@ -139,7 +139,7 @@ class Algorithms {
 				if (adjacentTiles.hasOwnProperty(direction)) {
 					let nextTile = adjacentTiles[direction];
 					if(this.gameMap.isWalkable(this.curGameState, nextTile)) {
-						let nextWeight = Heuristics.calcCaptureWeight(this.playerIndex, nextTile.value);
+						let nextWeight = Heuristics.calcCaptureWeight(this.gameMap.playerIndex, nextTile.value);
 						possibleMoves.push(this.decisionTreeSearchRec(nextTile.index, turns - 1, nextWeight));
 					} 
 				}

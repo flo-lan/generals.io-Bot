@@ -9,7 +9,6 @@ class Bot {
 
 	constructor(socket, playerIndex, data) {
 		this.socket = socket;
-		this.playerIndex = playerIndex;
 
 		//armies are always given at even turn numbers
 		//turn 1 -> 1 turn 2 -> 2, turn 4 -> 3, turn 24 -> 13 (turn / 2 + 1) = army count
@@ -20,7 +19,7 @@ class Bot {
 		//true, if bot found an adjacent enemy line with low values
 		this.isInfiltrating = false;
 
-		this.gameState = new GameState(data);
+		this.gameState = new GameState(data, playerIndex);
 		this.gameMap = new GameMap(this.gameState.width, this.gameState.height, playerIndex, this.gameState.generals);
 		Algorithms.gameMap = this.gameMap;
 	}
@@ -28,17 +27,17 @@ class Bot {
 
 	update(data) {
 		this.gameState.update(data);
-		console.log("turn: " + data.turn + " armies: " +this.gameState.armies[this.gameMap.ownGeneral]);
+
 		if(this.gameState.turn <= this.INITIAL_WAIT_TURNS) {
 			//wait for some armies to develop
-		} else if(this.gameState.turn % this.REINFORCEMENT_INTERVAL == 0) {
-			Spread.spread(this.gameMap, this.gameState, this.playerIndex, this);
 		} else if(this.gameState.turn == this.INITIAL_WAIT_TURNS + 1) {
 			this.discover();
 		} else if(this.gameState.turn >= this.SECONDS_DISCOVER_TURN 
 			&& this.gameState.turn < this.REINFORCEMENT_INTERVAL) {
 			this.secondDiscover();
-		}
+		} else if(this.gameState.turn % this.REINFORCEMENT_INTERVAL == 0) {
+			Spread.spread(this.gameMap, this.gameState, this.gameMap.playerIndex, this);
+		} 
 	}
 
 	//wait for a set amount of turns and then discover as far away from the general as possible
