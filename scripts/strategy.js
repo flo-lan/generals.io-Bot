@@ -38,11 +38,15 @@ class Strategy {
 	}
 
 	static midGame(bot, turn) {
+		//enemy was already found
 		if(bot.gameState.enemyTiles.size > 0) {
 			let enemyTarget = Heuristics.chooseEnemyTargetTile(bot.gameState, bot.gameMap);
+		} else {
+			
 		}
 	}
 
+	//enemy general spotted
 	static endGame(bot, turn) {
 
 	}

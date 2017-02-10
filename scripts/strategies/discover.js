@@ -5,7 +5,7 @@ class Discover {
 	//every tile just got an extra unit, move them to conquer new tiles 
 	static first(bot, waitTurns) {
 		//get all tiles, that can be reached with a maximum of moves
-		let radius = this.armiesReceivedTillTurn(this.INITIAL_WAIT_TURNS + 1);
+		let radius = this.armiesReceivedTillTurn(waitTurns + 1);
 		let reachableTiles = Algorithms.bfs(bot.gameState, bot.gameMap, bot.gameMap.ownGeneral, radius);
 		let discoverTile = Heuristics.chooseDiscoverTile(bot.gameMap, reachableTiles);
 		let moves = Algorithms.dijkstra(bot.gameState, bot.gameMap, bot.gameMap.ownGeneral, discoverTile);
