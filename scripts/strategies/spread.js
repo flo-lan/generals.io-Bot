@@ -1,6 +1,10 @@
 class Spread {
 	//every tile just got an extra unit, move them to conquer new tiles 
-	static spread(gameMap, gameState, playerIndex, bot) {
+	static spread(bot) {
+		let gameMap = bot.gameMap;
+		let gameState = bot.gameState;
+		let playerIndex = gameMap.playerIndex;
+
 		let moveableTiles = gameMap.getMoveableTiles(gameState);
 		let possibleMoves = [];
 		for(let tile of moveableTiles) {

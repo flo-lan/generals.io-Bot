@@ -3,13 +3,9 @@ const AStar = require('./astar.js');
 
 class Algorithms {
 
-	set gameMap(gameMap){
-		this.this.gameMap = this.gameMap;
-	}
-
 	//breadth first search. get all reachble tiles in radius
-	static bfs(gameState, node, radius) {
-		let isVisited = Array.apply(null, Array(this.gameMap.size)).map(function () { return false; })
+	static bfs(gameState, gameMap, node, radius) {
+		let isVisited = Array.apply(null, Array(gameMap.size)).map(function () { return false; })
 		isVisited[node] = true;
 		
 		let queue = [];
@@ -27,14 +23,14 @@ class Algorithms {
 				foundNodes.push({"id": curTile, "generalDistance": curLayer});
 			}
 			
-			let adjacentTiles = this.gameMap.getAdjacentTiles(gameState, curTile);
+			let adjacentTiles = gameMap.getAdjacentTiles(gameState, curTile);
 			//loop through adjacent tiles
 			for(let direction in adjacentTiles) {
 				if (adjacentTiles.hasOwnProperty(direction)) {
 					let nextTile = adjacentTiles[direction];
 					if(!isVisited[nextTile.index]) {
 						//tile can be moved on(ignore cities)
-						if(this.gameMap.isWalkable(gameState, nextTile)) {
+						if(gameMap.isWalkable(gameState, nextTile)) {
 							queue.push(nextTile.index);
 							isVisited[nextTile.index] = true;
 							nextLayerTiles++;
@@ -56,17 +52,17 @@ class Algorithms {
 		return foundNodes;
 	}
 
-	static aStar(gameState, start, ends) {
-		AStar.search(gameState, this.gameMap, start, ends);
+	static aStar(gameState, gameMap, start, ends) {
+		AStar.search(gameState, gameMap, start, ends);
 	}
 
 	//returns shortest path (as array) between start and end index
 	//no node weights
-	static dijkstra(gameState, start, end) {
+	static dijkstra(gameState, gameMap, start, end) {
 		let isVisited = [];
 		let previous = [];
 		
-		for(let i = 0; i < this.gameMap.size; i++) {
+		for(let i = 0; i < gameMap.size; i++) {
 			isVisited[i] = false;
 			previous[i] = i;
 		}
@@ -80,13 +76,13 @@ class Algorithms {
 			let curTile = queue.shift();
 			isVisited[curTile] = true;
 
-			let adjacentTiles = this.gameMap.getAdjacentTiles(gameState, curTile);
+			let adjacentTiles = gameMap.getAdjacentTiles(gameState, curTile);
 			//loop through adjacent tiles
 			for(let direction in adjacentTiles) {
 				if (adjacentTiles.hasOwnProperty(direction)) {
 					let nextTile = adjacentTiles[direction];
 					if(!isVisited[nextTile.index] && !queue.includes(nextTile.index) 
-						&& this.gameMap.isWalkable(gameState, nextTile)) {
+						&& gameMap.isWalkable(gameState, nextTile)) {
 						previous[nextTile.index] = curTile;
 						if(nextTile.index == end) {
 							return this.constructDijkstraPath(start, end, previous);
@@ -118,9 +114,11 @@ class Algorithms {
 		return path;
 	}
 
-	static decisionTreeSearch(gameState, startPoints, turns) {
-		//to avoid passing the gameState in every recursion
+	static decisionTreeSearch(gameState, gameMap, startPoints, turns) {
+		//to avoid passing the gameState and gameMap in every recursion
 		this.curGameState = gameState;
+		this.gameMap = gameMap;
+
 		let moves = [];
 
 		for(let start of startPoints) {

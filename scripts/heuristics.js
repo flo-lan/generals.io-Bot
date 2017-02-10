@@ -37,6 +37,36 @@ class Heuristics {
 		}
 	}
 
+	//find an enemy tile adjcaent to fog with a minimum army value
+	static chooseEnemyTargetTile(gameState, gameMap) {
+		let tilesWithFog = [];
+		
+		//loop through all visible enemy tiles
+		for (let [key, value] of gameState.enemyTiles) {
+			
+			let adjacentFog = false;
+			let adjacentTiles = gameMap.getAdjacentTiles(gameState, key);
+			//loop through adjacent tiles
+			for(let direction in adjacentTiles) {
+				if (adjacentTiles.hasOwnProperty(direction)) {
+					let nextTile = adjacentTiles[direction];
+					if(nextTile.value == TILE.FOG || nextTile.value == TILE.FOG_OBSTACLE) {
+						adjacentFog = true;
+					}
+				}
+			}
+
+			if(adjacentFog) {
+				tilesWithFog.push({"index": key, "value": value});
+			}
+		}
+
+		//find one with lowest army value
+		return tilesWithFog.reduce((a, b) =>
+			(a.value < b.value) ? a : b
+		);
+	}
+
 
 	//terrain must be walkable!!
 	//0 if it belongs to himself, 1 for empty and 3 for enemy tile
