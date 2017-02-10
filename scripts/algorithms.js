@@ -1,4 +1,5 @@
 const Heuristics = require('./heuristics.js');
+const AStar = require('./astar.js');
 
 class Algorithms {
 
@@ -53,6 +54,10 @@ class Algorithms {
 			}
 		}
 		return foundNodes;
+	}
+
+	static aStar(gameState, start, ends) {
+		AStar.search(gameState, this.gameMap, start, ends);
 	}
 
 	//returns shortest path (as array) between start and end index
