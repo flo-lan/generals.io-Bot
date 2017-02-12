@@ -7,6 +7,11 @@ class Bot {
 	constructor(socket, playerIndex, data) {
 		this.socket = socket;
 
+		this.queuedMoves = 0;
+
+		//true if an area was calculated where units should be gathered
+		this.isCollecting = false;
+
 		//true, if bot found an adjacent enemy line with low values
 		this.isInfiltrating = false;
 
@@ -17,25 +22,9 @@ class Bot {
 
 	update(data) {
 		this.gameState.update(data);
+		//decrement queued moves
+		this.queuedMoves = this.queuedMoves > 0 ? this.queuedMoves - 1 : 0;
 		Strategy.pickStrategy(this);
-		/*
-		if(this.gameState.turn <= this.INITIAL_WAIT_TURNS) {
-			//wait for some armies to develop
-		} else if(this.gameState.turn == this.INITIAL_WAIT_TURNS + 1) {
-			//discover new tiles towards the center
-			this.discover();
-		} else if(this.gameState.turn >= this.SECONDS_DISCOVER_TURN 
-			&& this.gameState.turn < this.REINFORCEMENT_INTERVAL) {
-			//take as many new tiles as possible till reinforcements come
-			this.secondDiscover();
-		} else if(this.gameState.turn % this.REINFORCEMENT_INTERVAL == 0) {
-			//spread new gained units
-			Spread.spread(this.gameMap, this.gameState, this.gameMap.playerIndex, this);
-		} else {
-			if(this.gameState.enemyTiles.size > 0) {
-				let enemyTarget = Heuristics.chooseEnemyTargetTile(this.gameState, this.gameMap);
-			}
-		}*/
 	}
 
 	queueMoves(moves) {
@@ -47,6 +36,7 @@ class Bot {
 	move(move) {
 		if(move.end != -1) {
 			this.socket.emit('attack', move.start, move.end);
+			this.queuedMoves++;
 		}
 	}
 }

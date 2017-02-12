@@ -20,7 +20,7 @@ class AStar {
 
 	static search(gameState, gameMap, start, ends) {
 		let searchList = this.init(gameState, gameMap);
-		
+
  		function compare(a, b) {return a.f - b.f;}
 		let openHeap = new Heap(compare);
 

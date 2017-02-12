@@ -1,11 +1,12 @@
 const Spread = require('./strategies/spread.js');
 const Discover = require('./strategies/discover.js');
+const Collect = require('./strategies/collect.js');
 const Heuristics = require('./heuristics.js');
+const Algorithms = require('./algorithms.js');
 
 //armies are always given at even turn numbers
 //turn 1 -> 1 turn 2 -> 2, turn 4 -> 3, turn 24 -> 13 (turn / 2 + 1) = army count
 let INITIAL_WAIT_TURNS = 23;
-let SECONDS_DISCOVER_TURN = Math.ceil((INITIAL_WAIT_TURNS + 1) * 1.5);
 let REINFORCEMENT_INTERVAL = 50;
 
 class Strategy {
@@ -31,7 +32,7 @@ class Strategy {
 		} else if(turn == INITIAL_WAIT_TURNS + 1) {
 			//discover new tiles towards the center
 			Discover.first(bot, INITIAL_WAIT_TURNS);
-		} else if(turn >= SECONDS_DISCOVER_TURN) {
+		} else if(bot.queuedMoves == 0) {
 			//take as many new tiles as possible till reinforcements come
 			Discover.second(bot, INITIAL_WAIT_TURNS);
 		} 
@@ -40,9 +41,15 @@ class Strategy {
 	static midGame(bot, turn) {
 		//enemy was already found
 		if(bot.gameState.enemyTiles.size > 0) {
-			let enemyTarget = Heuristics.chooseEnemyTargetTile(bot.gameState, bot.gameMap);
+			if(!bot.isCollecting) {
+				bot.collectArea = Collect.getCollectArea(bot);
+				bot.isCollecting = true;
+			}
+			if(bot.queuedMoves == 0) {
+				Collect.collect(bot);
+			}
 		} else {
-			
+			//no enemy found, TODO: gather around general
 		}
 	}
 

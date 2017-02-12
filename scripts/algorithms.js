@@ -53,7 +53,7 @@ class Algorithms {
 	}
 
 	static aStar(gameState, gameMap, start, ends) {
-		AStar.search(gameState, gameMap, start, ends);
+		return AStar.search(gameState, gameMap, start, ends);
 	}
 
 	//returns shortest path (as array) between start and end index

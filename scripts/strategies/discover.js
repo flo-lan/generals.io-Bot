@@ -14,6 +14,7 @@ class Discover {
 	}
 
 	static second(bot, waitTurns) {
+		//TODO: check tiles on armies[general]
 		let turns = Math.ceil((waitTurns + 1) / 2 / 2);
 		let moveableTiles = bot.gameMap.getMoveableTiles(bot.gameState);
 		
