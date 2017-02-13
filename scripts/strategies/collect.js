@@ -7,19 +7,30 @@ class Collect {
 		let gameState = bot.gameState;
 		let gameMap = bot.gameMap;
 
-		let enemyTarget = Heuristics.chooseEnemyTargetTile(gameState, gameMap);
-		let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameMap.ownGeneral, [enemyTarget.index]);
-		return pathToEnemy;
+		bot.isCollecting = true;
+
+		//enemy tile found
+		if(gameState.enemyTiles.size > 0) {
+			let enemyTarget = Heuristics.chooseEnemyTargetTileByLowestArmy(gameState, gameMap);
+			//TODO: remove attacking enemy tile from list
+			let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameMap.ownGeneral, [enemyTarget.index]);
+			return pathToEnemy;
+		} else {
+			//no enemy found, TODO: gather around general (e.g. within 2 or 3 manhatten distance)
+			return [gameMap.ownGeneral];
+		}
 	}
 
 	static collect(bot) {
 		let highestArmyIndex = this.getHighestArmyIndex(bot.gameState.ownTiles, bot.collectArea, bot.gameMap.ownGeneral);
 		if(highestArmyIndex == -1) {
 			//skip collecting, no tiles found
+			bot.isCollecting = false;
 		} else {
 			let pathToAttackingPath = Algorithms.aStar(bot.gameState, bot.gameMap, highestArmyIndex, bot.collectArea);
-			if(pathToAttackingPath.length > 0) {
-				bot.move({"start": highestArmyIndex, "end": pathToAttackingPath[0]});
+			//first aStar path entry is always the starting node
+			if(pathToAttackingPath.length > 1) {
+				bot.move({"start": highestArmyIndex, "end": pathToAttackingPath[1]});
 			}
 		}
 	}

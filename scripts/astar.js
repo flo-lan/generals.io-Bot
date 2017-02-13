@@ -39,6 +39,8 @@ class AStar {
 					path.push(cur.index);
 					cur = cur.parent;
 				}
+				//add starting node
+				path.push(cur.index);
 				return path.reverse();
 			}
 
