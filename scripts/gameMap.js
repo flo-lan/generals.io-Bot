@@ -7,15 +7,6 @@ class GameMap {
 		this.height = height;
 		this.size = width * height;
 		this.playerIndex = playerIndex;
-		this.initGeneral(generals);
-	}
-
-	initGeneral(generals) {
-		for(let general of generals) {
-			if(general != -1) {
-				this.ownGeneral = general;
-			}
-		}
 	}
 
 	//needs a tile object with index and value field
@@ -81,6 +72,20 @@ class GameMap {
 			if (adjacentTiles.hasOwnProperty(direction)) {
 				let nextTile = adjacentTiles[direction];
 				if(nextTile.value == TILE.FOG || nextTile.value == TILE.FOG_OBSTACLE) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	isAdjacentToEnemy(gameState, index) {
+		let adjacentTiles = this.getAdjacentTiles(gameState, index);
+		//loop through adjacent tiles
+		for(let direction in adjacentTiles) {
+			if (adjacentTiles.hasOwnProperty(direction)) {
+				let nextTile = adjacentTiles[direction];
+				if(nextTile.value >= 0 && nextTile.value != this.playerIndex) {
 					return true;
 				}
 			}

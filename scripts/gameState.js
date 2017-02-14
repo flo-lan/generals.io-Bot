@@ -11,6 +11,8 @@ class GameState {
 		this.ownTiles = new Map();
 		this.enemyTiles = new Map();
 
+		this.ownGeneral = -1;
+		this.enemyGeneral = -1;
 		this.update(data);
 	}
 
@@ -35,6 +37,7 @@ class GameState {
 		// terrain[0] is the top-left corner of the map.
 		this.terrain = this.map.slice(this.size + 2, this.map.length - 1);
 		this.updatePlayerTiles();
+		this.updateGenerals();
 	}
 
 	updatePlayerTiles() {
@@ -48,6 +51,18 @@ class GameState {
 					this.ownTiles.set(i, armies);
 				} else {
 					this.enemyTiles.set(i, armies);
+				}
+			}
+		}
+	}
+
+	updateGenerals() {
+		for(let general of this.generals) {
+			if(general != -1) {
+				if(this.ownGeneral == -1) {
+					this.ownGeneral = general;
+				} else if(general != this.ownGeneral) {
+					this.enemyGeneral = general;
 				}
 			}
 		}

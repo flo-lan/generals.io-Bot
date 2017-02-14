@@ -20,12 +20,12 @@ socket.on('connect', function() {
 	// Set the username for the bot.
 	socket.emit('set_username', user_id, username);
 	let custom_game_id = config.custom_game_id;
-	socket.emit('join_private', custom_game_id, user_id);
-	socket.emit('set_force_start', custom_game_id, true);
-	console.log('Joined custom game at http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
+	//socket.emit('join_private', custom_game_id, user_id);
+	//ocket.emit('set_force_start', custom_game_id, true);
+	//console.log('Joined custom game at http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
 
 	// Join the 1v1 queue.
-	// socket.emit('join_1v1', user_id);
+	 socket.emit('join_1v1', user_id);
 
 	// Join the FFA queue.
 	// socket.emit('play', user_id);

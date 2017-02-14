@@ -4,7 +4,7 @@ class Infiltrate {
 	//TODO: check if lastattacked tile is own(otherwise there are no more units to attack)
 	//TODO: create function, that returns nearest enemy tile next to fog
 	static infiltrate(bot) {
-		let enemyNeighbor = null;
+		let enemyNeighbor = -1;
 
 		let attackSource = bot.lastAttackedIndex;
 		let adjacentTiles = bot.gameMap.getAdjacentTiles(bot.gameState, attackSource);
@@ -14,8 +14,11 @@ class Infiltrate {
 				let nextTile = adjacentTiles[direction];
 				//found an adjacent enemy tile, which has an undiscovered neighbor
 				if(bot.gameMap.isEnemy(bot.gameState, nextTile.index) &&
-					bot.gameMap.isAdjacentToFog(bot.gameState, nextTile.index)) {
-					if(enemyNeighbor && nextTile.value < enemyNeighbor.value) {
+					(bot.gameMap.isAdjacentToFog(bot.gameState, nextTile.index) ||
+					 bot.gameMap.isAdjacentToEnemy(bot.gameState, nextTile.index))) {
+
+					//no tile found yet, or already found and better value
+					if(enemyNeighbor == -1 || nextTile.value < enemyNeighbor.value) {
 						enemyNeighbor = nextTile;
 					}
 				}
@@ -24,7 +27,8 @@ class Infiltrate {
 
 		let start = attackSource;
 		let end = -1;
-		if(enemyNeighbor) {
+
+		if(enemyNeighbor != -1) {
 			end = enemyNeighbor.index;
 		} else {
 			//no adjacent enemy tile found, that could lead to the enemy general
@@ -35,9 +39,12 @@ class Infiltrate {
 				end = path[1];
 			}
 		}
+
 		if(end == -1 || bot.gameMap.remainingArmiesAfterAttack(bot.gameState, start, end) <= 1) {
 			bot.isInfiltrating = false;
-		} else {
+		} 
+
+		if(end != -1){
 			bot.move({"start": start, "end": end});
 		}
 	}

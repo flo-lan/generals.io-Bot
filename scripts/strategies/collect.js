@@ -13,16 +13,16 @@ class Collect {
 		if(gameState.enemyTiles.size > 0) {
 			let enemyTarget = Heuristics.chooseEnemyTargetTileByLowestArmy(gameState, gameMap);
 			if(enemyTarget) {
-				let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameMap.ownGeneral, [enemyTarget.index]);
+				let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameState.ownGeneral, [enemyTarget.index]);
 				return pathToEnemy;
 			}
 		}
 		//no enemy found, TODO: gather around general (e.g. within 2 or 3 manhatten distance)
-		return [gameMap.ownGeneral];
+		return [gameState.ownGeneral];
 	}
 
 	static collect(bot) {
-		let highestArmyIndex = this.getHighestArmyIndex(bot.gameState.ownTiles, bot.collectArea, bot.gameMap.ownGeneral);
+		let highestArmyIndex = this.getHighestArmyIndex(bot.gameState.ownTiles, bot.collectArea, bot.gameState.ownGeneral);
 		if(highestArmyIndex == -1) {
 			//skip collecting, no tiles found
 			bot.isCollecting = false;

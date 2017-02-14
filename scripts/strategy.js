@@ -16,17 +16,16 @@ class Strategy {
 	static pickStrategy(bot) {
 		let turn = bot.gameState.turn;
 
-		if(bot.isInfiltrating) {
+		//enemy general found. ignore other strategies and straight on attack
+		if(bot.gameState.enemyGeneral != -1) {
+			this.endGame(bot, turn);
+		} else if(bot.isInfiltrating) {
 			//ignore every other strategies and attack enemy until no more attacks are possible
 			Infiltrate.infiltrate(bot);
-		}
-		else if(turn % REINFORCEMENT_INTERVAL == 0) {
+		} else if(turn % REINFORCEMENT_INTERVAL == 0) {
 			Spread.spread(bot);
-		}
-		else if(turn < REINFORCEMENT_INTERVAL) {
+		} else if(turn < REINFORCEMENT_INTERVAL) {
 			this.earlyGame(bot, turn);
-		} else if(false) { //TODO: check if enemy general was found
-			this.endGame(bot, turn);
 		} else {
 			this.midGame(bot, turn);
 		}
@@ -73,7 +72,12 @@ class Strategy {
 
 	//enemy general spotted
 	static endGame(bot, turn) {
+		let start = Collect.getHighestArmyIndex(bot.gameState.ownTiles, [], bot.gameState.ownGeneral);
+		let pathFromHighestArmyToGeneral = Algorithms.aStar(bot.gameState, bot.gameMap, start, [bot.gameState.enemyGeneral]);
 
+		if(pathFromHighestArmyToGeneral.length > 1) {
+			bot.move({"start": start, "end": pathFromHighestArmyToGeneral[1]});
+		}
 	}
 }
 
