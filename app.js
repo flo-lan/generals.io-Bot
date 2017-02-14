@@ -21,12 +21,12 @@ socket.on('connect', function() {
 	// Set the username for the bot.
 	socket.emit('set_username', user_id, username);
 	let custom_game_id = config.custom_game_id;
-	//socket.emit('join_private', custom_game_id, user_id);
-	//socket.emit('set_force_start', custom_game_id, true);
-	//console.log('Joined custom game at http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
+	socket.emit('join_private', custom_game_id, user_id);
+	socket.emit('set_force_start', custom_game_id, true);
+	console.log(getFormattedDate() + ' Custom game http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
 
 	// Join the 1v1 queue.
-	socket.emit('join_1v1', user_id);
+	//socket.emit('join_1v1', user_id);
 
 	// Join the FFA queue.
 	// socket.emit('play', user_id);
@@ -38,26 +38,32 @@ socket.on('connect', function() {
 let bot;
 let playerIndex;
 let replay_url = null;
+let usernames;
 
 socket.on('game_start', function(data) {
 	// Get ready to start playing the game.
 	playerIndex = data.playerIndex;
 	replay_url = 'http://bot.generals.io/replays/' + encodeURIComponent(data.replay_id);
-	console.log('Game starting! The replay will be available after the game at ' + replay_url);
+	usernames = data.usernames;
+	console.log(getFormattedDate() + ' Game starting! playing:' + getEnemies() + ' Replay ' + replay_url);
 	socket.emit('chat_message', data.chat_room, "gl hf");
 });
 
 socket.on('game_update', function(data) {
-	if(bot === undefined) {
+	if(bot === undefined || bot === null) {
 		bot = new Bot(socket, playerIndex, data);
 	}
 
 	bot.update(data);
 });
 
-socket.on('game_lost', leaveGame(false));
+socket.on('game_lost', function() {
+	leaveGame(false);
+});
 
-socket.on('game_won', leaveGame(true));
+socket.on('game_won', function() {
+	leaveGame(true);
+});
 
 function leaveGame(won) {
 	socket.emit('leave_game');
@@ -65,13 +71,31 @@ function leaveGame(won) {
 	if(replay_url !== undefined && replay_url !== null) {
 		let date = getFormattedDate();
 		let winningString = won ? "won" : "lost";
-		let fileString = date + ": " + winningString + " replay: " + replay_url + "\r\n";
+		let enemies = getEnemies();
+		let fileString = date + ": " + winningString + " against: " + enemies + " replay: " + replay_url + "\r\n";
 		fs.appendFile('history.log', fileString, function (err) {
-			console.log("error while writing file: " + err);
+			if(err !== null) {
+				console.log("error while writing file: " + err);
+			}
 		});
 		replay_url = null;
+		bot = null;
+		//socket.emit('join_1v1', config.user_id);
+		let custom_game_id = config.custom_game_id;
+		socket.emit('join_private', custom_game_id, config.user_id);
+		socket.emit('set_force_start', custom_game_id, true);
+		console.log(getFormattedDate() + ' Custom game http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
 	}
-	socket.emit('join_1v1', config.user_id);
+}
+
+function getEnemies() {
+	let enemies = [];
+	for(username of usernames) {
+		if(username != "[Bot] FloBot") {
+			enemies.push(username);
+		}
+	}
+	return enemies;
 }
 
 function getFormattedDate() {

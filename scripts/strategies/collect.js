@@ -12,7 +12,7 @@ class Collect {
 		//enemy tile found
 		if(gameState.enemyTiles.size > 0) {
 			let enemyTarget = Heuristics.chooseEnemyTargetTileByLowestArmy(gameState, gameMap);
-			if(enemyTarget) {
+			if(enemyTarget != null) {
 				let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameState.ownGeneral, [enemyTarget.index]);
 				return pathToEnemy;
 			}
