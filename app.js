@@ -16,21 +16,13 @@ socket.on('disconnect', function() {
 socket.on('connect', function() {
 	console.log('Connected to server.');
 
-	let user_id = config.user_id;
-	let username = config.username;
 	// Set the username for the bot.
-	socket.emit('set_username', user_id, username);
+	socket.emit('set_username', config.user_id, config.username);
 	
 	if(args.o) {
-		// Join the 1v1 queue.
-		socket.emit('join_1v1', user_id);
-		console.log(getFormattedDate() + ' Joined 1vs1 lobby');
+		joinOneVsOneQueue();
 	} else {
-		// Join custom queue
-		let custom_game_id = config.custom_game_id;
-		socket.emit('join_private', custom_game_id, user_id);
-		socket.emit('set_force_start', custom_game_id, true);
-		console.log(getFormattedDate() + ' Custom game http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
+		joinCustomGameQueue();
 	}
 
 	// Join the FFA queue.
@@ -40,6 +32,17 @@ socket.on('connect', function() {
 	// socket.emit('join_team', 'team_name', user_id);
 });
 
+function joinOneVsOneQueue() {
+	socket.emit('join_1v1', user_id);
+	console.log(getFormattedDate() + ' 1vs1 Lobby');
+}
+
+function joinCustomGameQueue() {
+	let custom_game_id = config.custom_game_id;
+	socket.emit('join_private', custom_game_id, config.user_id);
+	socket.emit('set_force_start', custom_game_id, true);
+	console.log(getFormattedDate() + ' Custom game Lobby http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
+}
 
 let bot;
 let playerIndex;
@@ -86,11 +89,11 @@ function leaveGame(won) {
 		});
 		replay_url = null;
 		bot = null;
-		//socket.emit('join_1v1', config.user_id);
-		let custom_game_id = config.custom_game_id;
-		socket.emit('join_private', custom_game_id, config.user_id);
-		socket.emit('set_force_start', custom_game_id, true);
-		console.log(getFormattedDate() + ' Custom game http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
+		if(args.o) {
+			joinOneVsOneQueue();
+		} else {
+			joinCustomGameQueue();
+		}
 	}
 }
 
