@@ -4,6 +4,7 @@ const Bot = require('./scripts/bot.js');
 
 const socket = io('http://bot.generals.io');
 const fs = require('fs');
+const args = require('minimist')(process.argv.slice(2));
 
 socket.on('disconnect', function() {
 	console.error('Disconnected from server.');
@@ -17,16 +18,20 @@ socket.on('connect', function() {
 
 	let user_id = config.user_id;
 	let username = config.username;
-
 	// Set the username for the bot.
 	socket.emit('set_username', user_id, username);
-	let custom_game_id = config.custom_game_id;
-	socket.emit('join_private', custom_game_id, user_id);
-	socket.emit('set_force_start', custom_game_id, true);
-	console.log(getFormattedDate() + ' Custom game http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
-
-	// Join the 1v1 queue.
-	//socket.emit('join_1v1', user_id);
+	
+	if(args.o) {
+		// Join the 1v1 queue.
+		socket.emit('join_1v1', user_id);
+		console.log(getFormattedDate() + ' Joined 1vs1 lobby');
+	} else {
+		// Join custom queue
+		let custom_game_id = config.custom_game_id;
+		socket.emit('join_private', custom_game_id, user_id);
+		socket.emit('set_force_start', custom_game_id, true);
+		console.log(getFormattedDate() + ' Custom game http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
+	}
 
 	// Join the FFA queue.
 	// socket.emit('play', user_id);
@@ -34,6 +39,7 @@ socket.on('connect', function() {
 	// Join a 2v2 team.
 	// socket.emit('join_team', 'team_name', user_id);
 });
+
 
 let bot;
 let playerIndex;
