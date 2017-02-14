@@ -30,6 +30,10 @@ class GameMap {
 		return gameState.cities.indexOf(tile.index) >= 0;
 	}
 
+	isEnemy(gameState, index) {
+		return gameState.terrain[index] >= 0 && gameState.terrain[index] != this.playerIndex;
+	}
+
 	getAdjacentTiles(gameState, index) {
 		let up = this.getAdjacentTile(gameState, index, -this.width);
 		let right = this.getAdjacentTile(gameState, index, 1);
@@ -70,6 +74,20 @@ class GameMap {
 		return {"index": adjacentIndex, "value": TILE.OFF_LIMITS};
 	}
 
+	isAdjacentToFog(gameState, index) {
+		let adjacentTiles = this.getAdjacentTiles(gameState, index);
+		//loop through adjacent tiles
+		for(let direction in adjacentTiles) {
+			if (adjacentTiles.hasOwnProperty(direction)) {
+				let nextTile = adjacentTiles[direction];
+				if(nextTile.value == TILE.FOG || nextTile.value == TILE.FOG_OBSTACLE) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	//takes a list of tiles and returns a list of all those with at least more than 1 unit 
 	getMoveableTiles(gameState) {
 		let tiles = [];
@@ -77,9 +95,12 @@ class GameMap {
 			if(value > 1) {
 				tiles.push(key);
 			}
-		}
-			
+		}		
 		return tiles;
+	}
+
+	remainingArmiesAfterAttack(gameState, start, end) {
+		return gameState.armies[start] - 1 - gameState.armies[end];
 	}
 
 	//gets a calculated distance from closest edges 

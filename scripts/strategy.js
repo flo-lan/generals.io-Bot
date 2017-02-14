@@ -16,9 +16,9 @@ class Strategy {
 	static pickStrategy(bot) {
 		let turn = bot.gameState.turn;
 
-		//ignore every other strategies and attack enemy until no more attacks are possible
 		if(bot.isInfiltrating) {
-			//Infiltrate.infiltrate(bot);
+			//ignore every other strategies and attack enemy until no more attacks are possible
+			Infiltrate.infiltrate(bot);
 		}
 		else if(turn % REINFORCEMENT_INTERVAL == 0) {
 			Spread.spread(bot);

@@ -12,13 +12,13 @@ class Collect {
 		//enemy tile found
 		if(gameState.enemyTiles.size > 0) {
 			let enemyTarget = Heuristics.chooseEnemyTargetTileByLowestArmy(gameState, gameMap);
-			//TODO: remove attacking enemy tile from list
-			let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameMap.ownGeneral, [enemyTarget.index]);
-			return pathToEnemy;
-		} else {
-			//no enemy found, TODO: gather around general (e.g. within 2 or 3 manhatten distance)
-			return [gameMap.ownGeneral];
+			if(enemyTarget) {
+				let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameMap.ownGeneral, [enemyTarget.index]);
+				return pathToEnemy;
+			}
 		}
+		//no enemy found, TODO: gather around general (e.g. within 2 or 3 manhatten distance)
+		return [gameMap.ownGeneral];
 	}
 
 	static collect(bot) {
@@ -40,8 +40,7 @@ class Collect {
 		let index = -1;
 		let armies = 0;
 		for (var [key, value] of tiles) {
-			//TODO: ignore general
-			if(value > armies && value > 1 && !path.includes(key) && key != generalIndex) {
+			if(value > armies && value > 1 && !path.includes(key)) {
 				index = key;
 				armies = value;
 			}

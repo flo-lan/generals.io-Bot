@@ -43,22 +43,12 @@ class Heuristics {
 		
 		//loop through all visible enemy tiles
 		for (let [key, value] of gameState.enemyTiles) {
-			
-			let adjacentFog = false;
-			let adjacentTiles = gameMap.getAdjacentTiles(gameState, key);
-			//loop through adjacent tiles
-			for(let direction in adjacentTiles) {
-				if (adjacentTiles.hasOwnProperty(direction)) {
-					let nextTile = adjacentTiles[direction];
-					if(nextTile.value == TILE.FOG || nextTile.value == TILE.FOG_OBSTACLE) {
-						adjacentFog = true;
-					}
-				}
-			}
-
-			if(adjacentFog) {
+			if(gameMap.isAdjacentToFog(gameState, key)) {
 				tilesWithFog.push({"index": key, "value": value});
 			}
+		}
+		if(tilesWithFog.length == 0) {
+			return null;
 		}
 
 		//find one with lowest army value
