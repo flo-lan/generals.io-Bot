@@ -94,7 +94,7 @@ class Algorithms {
 		}
 
 		//no path to end node found
-		console.log("Dijkstra found no path!")
+		console.log("Dijkstra found no path! start: " + start + " end: " + end);
 		return [];
 	}
 

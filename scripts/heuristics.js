@@ -33,7 +33,7 @@ class Heuristics {
 		if(optimalTile.id != -1) {
 			return optimalTile.id;
 		} else {
-			console.log("No tile found. Something is going wrong here.!");
+			console.log("No tile found. Something is going wrong here!");
 		}
 	}
 

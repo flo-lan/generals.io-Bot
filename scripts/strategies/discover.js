@@ -17,9 +17,10 @@ class Discover {
 		//TODO: check tiles on armies[general]
 		let turns = Math.ceil((waitTurns + 1) / 2 / 2);
 		let moveableTiles = bot.gameMap.getMoveableTiles(bot.gameState);
-		
-		let move = Algorithms.decisionTreeSearch(bot.gameState, bot.gameMap, moveableTiles, turns);
-		bot.move(move);
+		if(moveableTiles.length > 0) {
+			let move = Algorithms.decisionTreeSearch(bot.gameState, bot.gameMap, moveableTiles, turns);
+			bot.move(move);
+		}
 	}
 
 	//gets the amount of armies that the general produced until a given turn

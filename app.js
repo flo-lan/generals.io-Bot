@@ -33,7 +33,7 @@ socket.on('connect', function() {
 });
 
 function joinOneVsOneQueue() {
-	socket.emit('join_1v1', user_id);
+	socket.emit('join_1v1', config.user_id);
 	console.log(getFormattedDate() + ' 1vs1 Lobby');
 }
 
@@ -82,14 +82,15 @@ function leaveGame(won) {
 		let winningString = won ? "won" : "lost";
 		let enemies = getEnemies();
 		let fileString = date + ": " + winningString + " against: " + enemies + " replay: " + replay_url + "\r\n";
-		fs.appendFile('history.log', fileString, function (err) {
-			if(err !== null) {
-				console.log("error while writing file: " + err);
-			}
-		});
+	
 		replay_url = null;
 		bot = null;
 		if(args.o) {
+			fs.appendFile('history.log', fileString, function (err) {
+				if(err !== null) {
+					console.log("error while writing file: " + err);
+				}
+			});
 			joinOneVsOneQueue();
 		} else {
 			joinCustomGameQueue();
