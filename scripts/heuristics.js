@@ -8,17 +8,22 @@ class Heuristics {
 	static chooseDiscoverTile(gameState, gameMap, tiles) {
 		let generalCoords = gameMap.getCoordinatesFromTileID(gameState.ownGeneral);
 
-		let optimalTile = {"id": -1, "edgeWeight": 0};
+		let optimalTile = {"id": -1, "edgeWeight": -1};
 
 		let maxGeneralDistance = tiles[tiles.length -1].generalDistance;
-
+	
 		//first elements are the closest to the general
 		for(let i = tiles.length - 1; i >= 0; i--) {
 			let tile = tiles[i];
 			let edgeWeight = gameMap.getEdgeWeightForID(tile.id);
-			
+			console.log("disc:" + tile.id + " distan: " + tile.generalDistance + " weight: " + edgeWeight);
+
 			//general distance is not at maximum anymore. ignore other tiles
 			if(tile.generalDistance < maxGeneralDistance) {
+				if(optimalTile.id == -1) {
+					console.log(tile.generalDistance + " maxDi: " + maxGeneralDistance);
+					console.log(tiles);
+				}
 				return optimalTile.id;
 			}
 

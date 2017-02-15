@@ -30,7 +30,10 @@ class AStar {
 		while(openHeap.size() > 0) {
 			//tile with min f value
 			let curTile = openHeap.pop();
-			
+			if(curTile === undefined) {
+				console.log("start: " + start + " ends: " + ends + " gameState: " + gameState);
+				return [];
+			}
 			//end was found, build path
 			if(ends.includes(curTile.index)) {
 				let cur = curTile;

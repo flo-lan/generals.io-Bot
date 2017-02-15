@@ -72,7 +72,7 @@ class Strategy {
 
 	//enemy general spotted
 	static endGame(bot, turn) {
-		let start = Collect.getHighestArmyIndex(bot.gameState.ownTiles, [], bot.gameState.ownGeneral);
+		let start = Collect.getHighestArmyIndex(bot.gameState.ownTiles, []);
 		let pathFromHighestArmyToGeneral = Algorithms.aStar(bot.gameState, bot.gameMap, start, [bot.gameState.enemyGeneral]);
 
 		if(pathFromHighestArmyToGeneral.length > 1) {
