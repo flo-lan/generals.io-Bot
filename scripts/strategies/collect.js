@@ -13,7 +13,6 @@ class Collect {
 		if(gameState.enemyTiles.size > 0) {
 			let enemyTarget = Heuristics.chooseEnemyTargetTileByLowestArmy(gameState, gameMap);
 			if(enemyTarget != null) {
-				console.log("calc path to enemy: start: " + gameState.ownGeneral + " enemyTarget: " + enemyTarget.index + " val: " +enemyTarget.value);
 				let pathToEnemy = Algorithms.aStar(gameState, gameMap, gameState.ownGeneral, [enemyTarget.index]);
 				return pathToEnemy;
 			}
@@ -24,12 +23,10 @@ class Collect {
 
 	static collect(bot) {
 		let highestArmyIndex = this.getHighestArmyIndex(bot.gameState.ownTiles, bot.collectArea);
-		console.log("COLLECT: " + highestArmyIndex);
 		if(highestArmyIndex == -1) {
 			//skip collecting, no tiles found
 			bot.isCollecting = false;
 		} else {
-			console.log("lets go");
 			let pathToAttackingPath = Algorithms.aStar(bot.gameState, bot.gameMap, highestArmyIndex, bot.collectArea);
 			//first aStar path entry is always the starting node
 			if(pathToAttackingPath.length > 1) {

@@ -81,8 +81,8 @@ function leaveGame(won) {
 		let date = getFormattedDate();
 		let winningString = won ? "won" : "lost";
 		let enemies = getEnemies();
-		let fileString = date + ": " + winningString + " against: " + enemies + " replay: " + replay_url + "\r\n";
-	
+		let fileString = date + " " + winningString + " against: " + enemies + " replay: " + replay_url + "\r\n";
+		console.log(date + " " + winningString);
 		replay_url = null;
 		bot = null;
 		if(args.o) {
