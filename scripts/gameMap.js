@@ -110,8 +110,8 @@ class GameMap {
 
 	//gets a calculated distance from closest edges 
 	//distance from closest edge * distance from closest edge on complementary side
-	getEdgeWeightForID(id) {
-		let tileCoords = this.getCoordinatesFromTileID(id);
+	getEdgeWeightForIndex(index) {
+		let tileCoords = this.getCoordinatesFromTileIndex(index);
 		let upperEdge = tileCoords.y;
 		let rightEdge = this.width - 1 - tileCoords.x;
 		let downEdge = this.height - 1 - tileCoords.y;
@@ -120,15 +120,15 @@ class GameMap {
 	}
 
 	manhattenDistance(index1, index2) {
-		let coord1 = this.getCoordinatesFromTileID(index1);
-		let coord2 = this.getCoordinatesFromTileID(index2);
+		let coord1 = this.getCoordinatesFromTileIndex(index1);
+		let coord2 = this.getCoordinatesFromTileIndex(index2);
 		return Math.abs(coord1.x - coord2.x) + Math.abs(coord1.y - coord2.y);
 	}
 
-	getCoordinatesFromTileID(id) {
+	getCoordinatesFromTileIndex(index) {
 		return {
-			"x": Math.floor(id % this.width),
-			"y": Math.floor(id / this.width)
+			"x": Math.floor(index % this.width),
+			"y": Math.floor(index / this.width)
 		}
 	}
 }

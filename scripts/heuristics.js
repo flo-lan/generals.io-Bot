@@ -3,35 +3,35 @@ const TILE = require('./tile.js');
 class Heuristics {
 	
 	//TODO: choose by manhatten distance, not breadth search distance
-	//returns the furthest possible tile id from the general, with maximum distance to edge
-	//tiles are arrays of Objects with id and generalDistance properties
+	//returns the furthest possible tile index from the general, with maximum distance to edge
+	//tiles are arrays of Objects with index and generalDistance properties
 	static chooseDiscoverTile(gameState, gameMap, tiles) {
-		let generalCoords = gameMap.getCoordinatesFromTileID(gameState.ownGeneral);
+		let generalCoords = gameMap.getCoordinatesFromTileIndex(gameState.ownGeneral);
 
-		let optimalTile = {"id": -1, "edgeWeight": -1};
+		let optimalTile = {"index": -1, "edgeWeight": -1};
 
 		let maxGeneralDistance = tiles[tiles.length -1].generalDistance;
 	
 		//first elements are the closest to the general
 		for(let i = tiles.length - 1; i >= 0; i--) {
 			let tile = tiles[i];
-			let edgeWeight = gameMap.getEdgeWeightForID(tile.id);
+			let edgeWeight = gameMap.getEdgeWeightForIndex(tile.index);
 
 			//general distance is not at maximum anymore. ignore other tiles
 			if(tile.generalDistance < maxGeneralDistance) {
-				return optimalTile.id;
+				return optimalTile.index;
 			}
 
 			//a tile with maximum generalDistance and 
 			if(edgeWeight > optimalTile.edgeWeight) {
-				optimalTile.id = tile.id;
+				optimalTile.index = tile.index;
 				optimalTile.edgeWeight = edgeWeight;
 			}
 		}
 
 		//loop stopped, but optimal tile was found(meaning it was only 1 step away from general)
-		if(optimalTile.id != -1) {
-			return optimalTile.id;
+		if(optimalTile.index != -1) {
+			return optimalTile.index;
 		} else {
 			console.log("No tile found. Something is going wrong here!");
 		}

@@ -51,7 +51,6 @@ socket.on('game_start', function(data) {
 
 socket.on('game_update', function(data) {
 	if(!started) {
-		console.log("start");
 		bot = new Bot(socket, playerIndex, data);
 		started = true;
 	}

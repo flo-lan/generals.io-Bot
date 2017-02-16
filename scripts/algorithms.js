@@ -20,7 +20,7 @@ class Algorithms {
 
 			//don't add starting node
 			if(curLayer != 0) {
-				foundNodes.push({"id": curTile, "generalDistance": curLayer});
+				foundNodes.push({"index": curTile, "generalDistance": curLayer});
 			}
 			
 			let adjacentTiles = gameMap.getAdjacentTiles(gameState, curTile);
