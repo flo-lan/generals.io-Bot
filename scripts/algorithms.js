@@ -3,7 +3,7 @@ const AStar = require('./astar.js');
 
 class Algorithms {
 
-	//breadth first search. get all reachble tiles in radius
+	//breadth first search. get all reachable tiles in radius
 	static bfs(gameState, gameMap, node, radius) {
 		let isVisited = Array.apply(null, Array(gameMap.size)).map(function () { return false; })
 		isVisited[node] = true;

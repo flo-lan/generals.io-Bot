@@ -113,8 +113,8 @@ class GameMap {
 	getEdgeWeightForID(id) {
 		let tileCoords = this.getCoordinatesFromTileID(id);
 		let upperEdge = tileCoords.y;
-		let rightEdge = this.width - tileCoords.x;
-		let downEdge = this.height - tileCoords.y;
+		let rightEdge = this.width - 1 - tileCoords.x;
+		let downEdge = this.height - 1 - tileCoords.y;
 		let leftEdge = tileCoords.x;
 		return Math.min(upperEdge, downEdge) * Math.min(leftEdge, rightEdge);
 	}

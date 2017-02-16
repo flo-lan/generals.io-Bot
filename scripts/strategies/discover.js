@@ -8,8 +8,8 @@ class Discover {
 		let radius = this.armiesReceivedTillTurn(waitTurns + 1);
 		let reachableTiles = Algorithms.bfs(bot.gameState, bot.gameMap, bot.gameState.ownGeneral, radius);
 		let discoverTile = Heuristics.chooseDiscoverTile(bot.gameState, bot.gameMap, reachableTiles);
+		
 		let moves = Algorithms.dijkstra(bot.gameState, bot.gameMap, bot.gameState.ownGeneral, discoverTile);
-
 		bot.queueMoves(moves);
 	}
 

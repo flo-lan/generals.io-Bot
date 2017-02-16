@@ -31,11 +31,11 @@ class GameState {
 
 		// The next |size| terms are army values.
 		// armies[0] is the top-left corner of the map.
-		this.armies = this.map.slice(2, this.size + 1);
+		this.armies = this.map.slice(2, this.size + 2);
 
 		// The last |size| terms are terrain values.
 		// terrain[0] is the top-left corner of the map.
-		this.terrain = this.map.slice(this.size + 2, this.map.length - 1);
+		this.terrain = this.map.slice(this.size + 2, this.size + 2 + this.size);
 		this.updatePlayerTiles();
 		this.updateGenerals();
 	}

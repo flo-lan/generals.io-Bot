@@ -6,6 +6,13 @@ const socket = io('http://bot.generals.io');
 const fs = require('fs');
 const args = require('minimist')(process.argv.slice(2));
 
+let bot;
+let playerIndex;
+let replay_url = null;
+let usernames;
+let started = false;
+let restartWaitTime = 10000;
+
 socket.on('disconnect', function() {
 	console.error('Disconnected from server.');
 
@@ -32,6 +39,34 @@ socket.on('connect', function() {
 	// socket.emit('join_team', 'team_name', user_id);
 });
 
+socket.on('game_start', function(data) {
+	// Get ready to start playing the game.
+	playerIndex = data.playerIndex;
+	started = false;
+	replay_url = 'http://bot.generals.io/replays/' + encodeURIComponent(data.replay_id);
+	usernames = data.usernames;
+	console.log(getFormattedDate() + ' Game starting! playing:' + getEnemies() + ' Replay ' + replay_url);
+	socket.emit('chat_message', data.chat_room, "gl hf");
+});
+
+socket.on('game_update', function(data) {
+	if(!started) {
+		console.log("start");
+		bot = new Bot(socket, playerIndex, data);
+		started = true;
+	}
+	
+	bot.update(data);
+});
+
+socket.on('game_lost', function() {
+	leaveGame(false);
+});
+
+socket.on('game_won', function() {
+	leaveGame(true);
+});
+
 function joinOneVsOneQueue() {
 	socket.emit('join_1v1', config.user_id);
 	console.log(getFormattedDate() + ' 1vs1 Lobby');
@@ -44,36 +79,6 @@ function joinCustomGameQueue() {
 	console.log(getFormattedDate() + ' Custom game Lobby http://bot.generals.io/games/' + encodeURIComponent(custom_game_id));
 }
 
-let bot;
-let playerIndex;
-let replay_url = null;
-let usernames;
-
-socket.on('game_start', function(data) {
-	// Get ready to start playing the game.
-	playerIndex = data.playerIndex;
-	replay_url = 'http://bot.generals.io/replays/' + encodeURIComponent(data.replay_id);
-	usernames = data.usernames;
-	console.log(getFormattedDate() + ' Game starting! playing:' + getEnemies() + ' Replay ' + replay_url);
-	socket.emit('chat_message', data.chat_room, "gl hf");
-});
-
-socket.on('game_update', function(data) {
-	if(bot === undefined || bot === null) {
-		bot = new Bot(socket, playerIndex, data);
-	}
-
-	bot.update(data);
-});
-
-socket.on('game_lost', function() {
-	leaveGame(false);
-});
-
-socket.on('game_won', function() {
-	leaveGame(true);
-});
-
 function leaveGame(won) {
 	socket.emit('leave_game');
 	//game_lost and game_won are called at startup. make sure to not write to file in this situation
@@ -83,25 +88,30 @@ function leaveGame(won) {
 		let enemies = getEnemies();
 		let fileString = date + " " + winningString + " against: " + enemies + " replay: " + replay_url + "\r\n";
 		console.log(date + " " + winningString);
-		replay_url = null;
-		bot = null;
 		if(args.o) {
 			fs.appendFile('history.log', fileString, function (err) {
 				if(err !== null) {
 					console.log("error while writing file: " + err);
 				}
 			});
-			joinOneVsOneQueue();
-		} else {
-			joinCustomGameQueue();
 		}
+		setTimeout(restart, restartWaitTime);
+	}
+}
+
+function restart() {
+	replay_url = null;
+	if(args.o) {
+		joinOneVsOneQueue();
+	} else {
+		joinCustomGameQueue();
 	}
 }
 
 function getEnemies() {
 	let enemies = [];
 	for(username of usernames) {
-		if(username != "[Bot] FloBot") {
+		if(username != config.username) {
 			enemies.push(username);
 		}
 	}
