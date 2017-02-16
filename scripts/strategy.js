@@ -2,6 +2,7 @@ const Spread = require('./strategies/spread.js');
 const Discover = require('./strategies/discover.js');
 const Collect = require('./strategies/collect.js');
 const Infiltrate = require('./strategies/infiltrate.js');
+const RushGeneral = require('./strategies/rushGeneral.js');
 const Heuristics = require('./heuristics.js');
 const Algorithms = require('./algorithms.js');
 
@@ -9,6 +10,8 @@ const Algorithms = require('./algorithms.js');
 //turn 1 -> 1 turn 2 -> 2, turn 4 -> 3, turn 24 -> 13 (turn / 2 + 1) = army count
 let INITIAL_WAIT_TURNS = 23;
 let REINFORCEMENT_INTERVAL = 50;
+//amount of times the spreading phase is called, before dropping it
+let SPREADING_TIMES = 5;
 let ATTACK_TURNS_BEFORE_REINFORCEMENTS = 10;
 
 class Strategy {
@@ -18,11 +21,11 @@ class Strategy {
 
 		//enemy general found. ignore other strategies and straight on attack
 		if(bot.gameState.enemyGeneral != -1) {
-			this.endGame(bot, turn);
+			this.endGame(bot);
 		} else if(bot.isInfiltrating) {
 			//ignore every other strategies and attack enemy until no more attacks are possible
 			Infiltrate.infiltrate(bot);
-		} else if(turn % REINFORCEMENT_INTERVAL == 0) {
+		} else if(turn % REINFORCEMENT_INTERVAL == 0 && turn / REINFORCEMENT_INTERVAL <= SPREADING_TIMES) {
 			Spread.spread(bot);
 		} else if(turn < REINFORCEMENT_INTERVAL) {
 			this.earlyGame(bot, turn);
@@ -71,13 +74,8 @@ class Strategy {
 	}
 
 	//enemy general spotted
-	static endGame(bot, turn) {
-		let start = Collect.getHighestArmyIndex(bot.gameState.ownTiles, []);
-		let pathFromHighestArmyToGeneral = Algorithms.aStar(bot.gameState, bot.gameMap, start, [bot.gameState.enemyGeneral]);
-
-		if(pathFromHighestArmyToGeneral.length > 1) {
-			bot.move({"start": start, "end": pathFromHighestArmyToGeneral[1]});
-		}
+	static endGame(bot) {
+		RushGeneral.rush(bot);
 	}
 }
 

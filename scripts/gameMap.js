@@ -69,7 +69,7 @@ class GameMap {
 		let adjacentTiles = this.getAdjacentTiles(gameState, index);
 		//loop through adjacent tiles
 		for(let direction in adjacentTiles) {
-			if (adjacentTiles.hasOwnProperty(direction)) {
+			if(adjacentTiles.hasOwnProperty(direction)) {
 				let nextTile = adjacentTiles[direction];
 				if(nextTile.value == TILE.FOG || nextTile.value == TILE.FOG_OBSTACLE) {
 					return true;

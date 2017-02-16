@@ -12,10 +12,10 @@ class Infiltrate {
 			for(let direction in adjacentTiles) {
 				if (adjacentTiles.hasOwnProperty(direction)) {
 					let nextTile = adjacentTiles[direction];
-					//found an adjacent enemy tile, which has an undiscovered neighbor
+					//found an adjacent enemy tile, which has an undiscovered neighbor(ignore if it is a city)
 					if(bot.gameMap.isEnemy(bot.gameState, nextTile.index) &&
-						(bot.gameMap.isAdjacentToFog(bot.gameState, nextTile.index) ||
-						 bot.gameMap.isAdjacentToEnemy(bot.gameState, nextTile.index))) {
+						bot.gameMap.isWalkable(bot.gameState, nextTile.index) &&
+						bot.gameMap.isAdjacentToFog(bot.gameState, nextTile.index)) {
 
 						//no tile found yet, or already found and less armies
 						if(enemyNeighbor == -1 || 
@@ -43,9 +43,9 @@ class Infiltrate {
 
 			if(end == -1 || bot.gameMap.remainingArmiesAfterAttack(bot.gameState, start, end) <= 1) {
 				bot.isInfiltrating = false;
-			} 
+			}
 
-			if(end != -1){
+			if(end != -1 && bot.gameMap.remainingArmiesAfterAttack(bot.gameState, start, end) >= 1) {
 				bot.move({"start": start, "end": end});
 			}
 		} else {

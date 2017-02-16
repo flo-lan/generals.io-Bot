@@ -61,7 +61,8 @@ class GameState {
 			if(general != -1) {
 				if(this.ownGeneral == -1) {
 					this.ownGeneral = general;
-				} else if(general != this.ownGeneral) {
+				} else if(general != this.ownGeneral && this.enemyGeneral == -1) {
+					//only update enemyGeneral if it hasn't been found yet
 					this.enemyGeneral = general;
 				}
 			}
