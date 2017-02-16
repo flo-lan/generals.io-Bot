@@ -105,7 +105,10 @@ class GameMap {
 	}
 
 	remainingArmiesAfterAttack(gameState, start, end) {
-		return gameState.armies[start] - 1 - gameState.armies[end];
+		if(start > 0 && start < gameState.size && end > 0 && end < gameState.size) {
+			return gameState.armies[start] - 1 - gameState.armies[end];
+		}
+		return 0;
 	}
 
 	//gets a calculated distance from closest edges 

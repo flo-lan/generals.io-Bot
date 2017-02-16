@@ -49,6 +49,7 @@ class Infiltrate {
 				bot.move({"start": start, "end": end});
 			}
 		} else {
+			console.log("Last attack index was not valid!" + bot.lastAttackedIndex);
 			bot.isInfiltrating = false;
 		}
 	}

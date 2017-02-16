@@ -8,11 +8,11 @@ const Algorithms = require('./algorithms.js');
 
 //armies are always given at even turn numbers
 //turn 1 -> 1 turn 2 -> 2, turn 4 -> 3, turn 24 -> 13 (turn / 2 + 1) = army count
-let INITIAL_WAIT_TURNS = 23;
-let REINFORCEMENT_INTERVAL = 50;
+const INITIAL_WAIT_TURNS = 23;
+const REINFORCEMENT_INTERVAL = 50;
 //amount of times the spreading phase is called, before dropping it
-let SPREADING_TIMES = 5;
-let ATTACK_TURNS_BEFORE_REINFORCEMENTS = 10;
+const SPREADING_TIMES = 4;
+const ATTACK_TURNS_BEFORE_REINFORCEMENTS = 10;
 
 class Strategy {
 
@@ -75,7 +75,19 @@ class Strategy {
 
 	//enemy general spotted
 	static endGame(bot) {
-		RushGeneral.rush(bot);
+		if(!bot.isInfiltrating) {
+			RushGeneral.rush(bot);
+		} else {
+			//finish infiltrating first. (enemy can be discovered diagonally. move to adjacenttile first)
+			let pathToGeneral = Algorithms.aStar(bot.gameState, bot.gameMap, bot.lastAttackedIndex, [bot.gameState.enemyGeneral]);
+			if(pathToGeneral.length <= 2 || bot.gameMap.remainingArmiesAfterAttack(bot.gameState, pathToGeneral[0], pathToGeneral[1]) <= 1) {
+				bot.isInfiltrating = false;
+			}
+
+			if(pathToGeneral.length > 2) {
+				bot.move({"start": pathToGeneral[0], "end": pathToGeneral[1]});
+			}
+		}
 	}
 }
 
