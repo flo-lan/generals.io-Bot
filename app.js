@@ -2,7 +2,7 @@ const io = require('socket.io-client');
 const config = require('./config.js');
 const Bot = require('./scripts/bot.js');
 
-const socket = io('http://bot.generals.io');
+let socket = io('http://bot.generals.io');
 const fs = require('fs');
 const args = require('minimist')(process.argv.slice(2));
 
@@ -15,9 +15,7 @@ let restartWaitTime = 10000;
 
 socket.on('disconnect', function() {
 	console.error('Disconnected from server.');
-
-	//terminate with failure
-	process.exit(1);
+	setTimeout(restart, restartWaitTime);
 });
 
 socket.on('connect', function() {
@@ -94,17 +92,13 @@ function leaveGame(won) {
 				}
 			});
 		}
-		setTimeout(restart, restartWaitTime);
+		replay_url = null;
+		socket.disconnect();
 	}
 }
 
 function restart() {
-	replay_url = null;
-	if(args.o) {
-		joinOneVsOneQueue();
-	} else {
-		joinCustomGameQueue();
-	}
+	socket.connect();
 }
 
 function getEnemies() {
