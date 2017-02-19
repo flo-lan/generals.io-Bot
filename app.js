@@ -26,6 +26,8 @@ socket.on('connect', function() {
 	
 	if(args.o) {
 		joinOneVsOneQueue();
+	} else if(args.f) {
+		joinFFAQueue();
 	} else {
 		joinCustomGameQueue();
 	}
@@ -69,6 +71,12 @@ function joinOneVsOneQueue() {
 	console.log(getFormattedDate() + ' 1vs1 Lobby');
 }
 
+function joinFFAQueue() {
+	socket.emit('play', config.user_id);
+	socket.emit('set_force_start', true);
+	console.log(getFormattedDate() + ' FFA Lobby');
+}
+
 function joinCustomGameQueue() {
 	let custom_game_id = config.custom_game_id;
 	socket.emit('join_private', custom_game_id, config.user_id);
@@ -85,8 +93,15 @@ function leaveGame(won) {
 		let enemies = getEnemies();
 		let fileString = date + " " + winningString + " against: " + enemies + " replay: " + replay_url + "\r\n";
 		console.log(date + " " + winningString);
+		let logfile;
 		if(args.o) {
-			fs.appendFile('history.log', fileString, function (err) {
+			logfile = "history1v1.log";
+		} else if(args.f) {
+			logfile = "historyFFA.log";
+		}
+
+		if(args.o || args.f) {
+			fs.appendFile(logfile, fileString, function (err) {
 				if(err !== null) {
 					console.log("error while writing file: " + err);
 				}

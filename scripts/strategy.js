@@ -25,7 +25,9 @@ class Strategy {
 		} else if(bot.isInfiltrating) {
 			//ignore every other strategies and attack enemy until no more attacks are possible
 			Infiltrate.infiltrate(bot);
-		} else if(turn % REINFORCEMENT_INTERVAL == 0 && turn / REINFORCEMENT_INTERVAL <= SPREADING_TIMES) {
+		} else if(turn % REINFORCEMENT_INTERVAL == 0 && 
+			(turn / REINFORCEMENT_INTERVAL <= SPREADING_TIMES || bot.gameState.enemyTiles.size == 0)) {
+			//spread every 50 turns, but only a fixed amount of times, unless no enemies are detected
 			Spread.spread(bot);
 		} else if(turn < REINFORCEMENT_INTERVAL) {
 			this.earlyGame(bot, turn);
