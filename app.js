@@ -118,7 +118,10 @@ function restart() {
 function getEnemies() {
 	let enemies = [];
 	for(username of usernames) {
-		if(username != config.username) {
+		if(args.f && username != config.usernameFFA) {
+			enemies.push(username);
+		}
+		else if(args.o && username != config.username) {
 			enemies.push(username);
 		}
 	}
