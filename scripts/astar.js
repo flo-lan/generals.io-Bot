@@ -11,6 +11,7 @@ class AStar {
 			searchList[i].g = 0;
 			searchList[i].h = 0;
 			searchList[i].f = 0;
+			searchList[i].armies = 0;
 			searchList[i].visited = false;
 			searchList[i].closed = false;
 			searchList[i].parent = null;
@@ -21,7 +22,8 @@ class AStar {
 	static search(gameState, gameMap, start, ends) {
 		let searchList = this.init(gameState, gameMap);
 
- 		function compare(a, b) {return a.f - b.f;}
+		//compare by f value, if equal, compare which has the most armies
+ 		function compare(a, b) {return a.f == b.f ? b.armies - a.armies : a.f - b.f;}
 		let openHeap = new Heap(compare);
 
 		openHeap.push(searchList[start]);
@@ -65,12 +67,21 @@ class AStar {
 					let gScore = curTile.g + this.TILE_COST;
 					let visited = neighbour.visited;
 
+					//if tile is owned by enemy, add extra weight
+					if(nextTile.value >= 0 && nextTile.value != gameState.playerIndex) {
+						gScore += gameState.armies[nextTile.index];
+					} else if(nextTile.value == -1) {
+						//empty tile
+						gScore += 1;
+					}
+
 					if(!visited || gScore < neighbour.g) {
 						neighbour.visited = true;
 						neighbour.parent = curTile;
 						neighbour.g = gScore;
 						neighbour.h = neighbour.h || this.getNearestEndPointHScore(gameMap, start, ends);
 						neighbour.f = neighbour.g + neighbour.h;
+						neighbour.armies = gameState.armies[nextTile.index];
 
 						if(!visited) {
 							openHeap.push(neighbour);
