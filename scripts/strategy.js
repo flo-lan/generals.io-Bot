@@ -81,12 +81,6 @@ class Strategy {
 			RushGeneral.rush(bot);
 		} else {
 			//finish infiltrating first. (enemy can be discovered diagonally. move to adjacent tile first)
-			/*let pathToGeneral = Algorithms.aStar(bot.gameState, bot.gameMap, bot.lastAttackedIndex, [bot.gameState.enemyGeneral]);
-			ifRushGeneral.tryToKillGeneral(bot);
-
-			if(pathToGeneral.length <= 2 || bot.gameMap.remainingArmiesAfterAttack(bot.gameState, pathToGeneral[0], pathToGeneral[1]) <= 1) {
-				bot.isInfiltrating = false;
-			}*/
 			Infiltrate.infiltrate(bot);
 		}
 	}

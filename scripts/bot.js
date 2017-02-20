@@ -39,7 +39,6 @@ class Bot {
 			this.queuedMoves++;
 			this.lastAttackedIndex = move.end;
 			this.socket.emit('attack', move.start, move.end);
-			console.log("last attack: " + move.start + " end: " + move.end);
 		}
 	}
 }
