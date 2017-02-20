@@ -39,7 +39,7 @@ class Collect {
 	static getHighestArmyIndex(tiles, path) {
 		let index = -1;
 		let armies = 0;
-		for (var [key, value] of tiles) {
+		for (let [key, value] of tiles) {
 			if(value > armies && value > 1 && !path.includes(key)) {
 				index = key;
 				armies = value;

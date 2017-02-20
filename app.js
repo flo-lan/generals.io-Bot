@@ -20,9 +20,6 @@ socket.on('disconnect', function() {
 
 socket.on('connect', function() {
 	console.log('Connected to server.');
-
-	// Set the username for the bot.
-	socket.emit('set_username', config.user_id, config.username);
 	
 	if(args.o) {
 		joinOneVsOneQueue();
@@ -67,12 +64,14 @@ socket.on('game_won', function() {
 });
 
 function joinOneVsOneQueue() {
+	socket.emit('set_username', config.user_id, config.username);
 	socket.emit('join_1v1', config.user_id);
 	console.log(getFormattedDate() + ' 1vs1 Lobby');
 }
 
 function joinFFAQueue() {
-	socket.emit('play', config.user_id);
+	socket.emit('set_username', config.user_idFFA, config.usernameFFA);
+	socket.emit('play', config.user_idFFA);
 	socket.emit('set_force_start', true);
 	console.log(getFormattedDate() + ' FFA Lobby');
 }

@@ -57,12 +57,13 @@ class GameState {
 	}
 
 	updateGenerals() {
+		//reset every time in case it was already captured
+		this.enemyGeneral = -1;
 		for(let general of this.generals) {
 			if(general != -1) {
 				if(this.ownGeneral == -1) {
 					this.ownGeneral = general;
 				} else if(general != this.ownGeneral) {
-					//only update enemyGeneral if it hasn't been found yet
 					this.enemyGeneral = general;
 				}
 			}
