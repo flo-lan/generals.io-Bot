@@ -81,7 +81,9 @@ class Strategy {
 			RushGeneral.rush(bot);
 		} else {
 			//finish infiltrating first. (enemy can be discovered diagonally. move to adjacent tile first)
-			Infiltrate.infiltrate(bot);
+			if(!RushGeneral.tryToKillGeneral(bot)) {
+				Infiltrate.infiltrate(bot);
+			}
 		}
 	}
 }
