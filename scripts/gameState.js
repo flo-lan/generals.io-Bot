@@ -11,6 +11,10 @@ class GameState {
 		this.ownTiles = new Map();
 		this.enemyTiles = new Map();
 
+		let map = patch(this.map, data.map_diff);
+		let size = map[0] * map[1];
+		this.discoveredTiles = Array.apply(null, Array(size)).map(function () { return false; })
+
 		this.ownGeneral = -1;
 		this.enemyGeneral = -1;
 		this.update(data);
@@ -37,6 +41,7 @@ class GameState {
 		// terrain[0] is the top-left corner of the map.
 		this.terrain = this.map.slice(this.size + 2, this.size + 2 + this.size);
 		this.updatePlayerTiles();
+		this.updateDiscoveredTiles();
 		this.updateGenerals();
 	}
 
@@ -56,9 +61,18 @@ class GameState {
 		}
 	}
 
+	//store tiles, that have already been discovered, even if being recaptured or disguised
+	updateDiscoveredTiles() {
+		for(let i = 0; i < this.terrain.length; i++) {
+			if(!this.discoveredTiles[i]) {
+				if(this.ownTiles.has(i) || this.enemyTiles.has(i)) {
+					this.discoveredTiles[i] = true;
+				}
+			}
+		}
+	}
+
 	updateGenerals() {
-		//reset every time in case it was already captured
-		this.enemyGeneral = -1;
 		for(let general of this.generals) {
 			if(general != -1) {
 				if(this.ownGeneral == -1) {

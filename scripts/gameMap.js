@@ -71,7 +71,7 @@ class GameMap {
 		for(let direction in adjacentTiles) {
 			if(adjacentTiles.hasOwnProperty(direction)) {
 				let nextTile = adjacentTiles[direction];
-				if(nextTile.value == TILE.FOG || nextTile.value == TILE.FOG_OBSTACLE) {
+				if(!gameState.discoveredTiles[nextTile.index]) {
 					return true;
 				}
 			}
